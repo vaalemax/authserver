@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Realms — Admin Console</title></head>
+<body>
+<h1>Realms</h1>
+<p th:if="${successMessage}" style="color:green" th:text="${successMessage}"></p>
+<p th:if="${errorMessage}" style="color:red" th:text="${errorMessage}"></p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+    <tr><th>Nome</th><th>Display name</th><th>Abilitato</th><th></th></tr>
+    <tr th:each="realm : ${realms}">
+        <td th:text="${realm.name}"></td>
+        <td th:text="${realm.displayName}"></td>
+        <td th:text="${realm.enabled}"></td>
+        <td><a th:href="@{/console/realms/{name}/clients(name=${realm.name})}">Gestisci client</a></td>
+    </tr>
+</table>
+
+<h2>Nuovo realm</h2>
+<form th:action="@{/console/realms}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <label>Nome (slug) <input type="text" name="name" required></label><br>
+    <label>Display name <input type="text" name="displayName"></label><br>
+    <button type="submit">Crea</button>
+</form>
+
+<form th:action="@{/console/logout}" method="post" style="margin-top:30px;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit">Logout</button>
+</form>
+</body>
+</html>

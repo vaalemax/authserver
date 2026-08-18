@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-app-user
+      author: vale
+      changes:
+        - createTable:
+            tableName: app_user
+            columns:
+              - column: { name: id, type: varchar(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: realm_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_user_realm, references: realm(id) } }
+              - column: { name: username, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: password, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: enabled, type: boolean, defaultValueBoolean: true }
+        - addUniqueConstraint:
+            tableName: app_user
+            columnNames: realm_id, username
+            constraintName: uq_user_realm_username
+        - createTable:
+            tableName: app_user_roles
+            columns:
+              - column: { name: user_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_roles_user, references: app_user(id) } }
+              - column: { name: role, type: varchar(50) }

@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-oauth2-client
+      author: vale
+      changes:
+        - createTable:
+            tableName: oauth2_client
+            columns:
+              - column: { name: id, type: varchar(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: realm_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_client_realm, references: realm(id) } }
+              - column: { name: client_id, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: client_id_issued_at, type: timestamp }
+              - column: { name: client_secret, type: varchar(255) }
+              - column: { name: client_secret_expires_at, type: timestamp }
+              - column: { name: client_name, type: varchar(200) }
+              - column: { name: client_settings, type: text }
+              - column: { name: token_settings, type: text }
+        - addUniqueConstraint:
+            tableName: oauth2_client
+            columnNames: realm_id, client_id
+            constraintName: uq_client_realm_client_id
+        - createTable:
+            tableName: oauth2_client_auth_methods
+            columns:
+              - column: { name: client_pk_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_auth_methods_client, references: oauth2_client(id) } }
+              - column: { name: authentication_method, type: varchar(50) }
+        - createTable:
+            tableName: oauth2_client_grant_types
+            columns:
+              - column: { name: client_pk_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_grant_types_client, references: oauth2_client(id) } }
+              - column: { name: grant_type, type: varchar(50) }
+        - createTable:
+            tableName: oauth2_client_redirect_uris
+            columns:
+              - column: { name: client_pk_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_redirect_uris_client, references: oauth2_client(id) } }
+              - column: { name: redirect_uri, type: varchar(500) }
+        - createTable:
+            tableName: oauth2_client_scopes
+            columns:
+              - column: { name: client_pk_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_scopes_client, references: oauth2_client(id) } }
+              - column: { name: scope, type: varchar(100) }

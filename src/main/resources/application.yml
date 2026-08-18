@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: authserver
+  datasource:
+    url: jdbc:postgresql://localhost:5433/authserver
+    username: authserver
+    password: authserver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+  security:
+    oauth2:
+      client:
+        registration:
+          admin-console:
+            provider: admin-console
+            client-id: admin-console
+            client-secret: ${ADMIN_CONSOLE_CLIENT_SECRET:changeme-console-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid,profile
+        provider:
+          admin-console:
+            authorization-uri: http://localhost:9000/master/oauth2/authorize
+            token-uri: http://localhost:9000/master/oauth2/token
+            jwk-set-uri: http://localhost:9000/master/oauth2/jwks
+            user-info-uri: http://localhost:9000/master/userinfo
+            user-name-attribute: sub
+
+server:
+  port: 9000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+admin:
+  client-secret: ${ADMIN_CLIENT_SECRET:changeme-client-secret}
+  console-username: ${ADMIN_CONSOLE_USERNAME:admin}
+  console-password: ${ADMIN_CONSOLE_PASSWORD:changeme-console-password}
+  console-client-secret: ${ADMIN_CONSOLE_CLIENT_SECRET:changeme-console-secret}

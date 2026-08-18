@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 000-create-realm
+      author: vale
+      changes:
+        - createTable:
+            tableName: realm
+            columns:
+              - column: { name: id, type: varchar(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: name, type: varchar(100), constraints: { nullable: false, unique: true } }
+              - column: { name: display_name, type: varchar(200) }
+              - column: { name: enabled, type: boolean, defaultValueBoolean: true }
+              - column: { name: rsa_key_id, type: varchar(36) }
+              - column: { name: rsa_public_key, type: text }
+              - column: { name: rsa_private_key, type: text }

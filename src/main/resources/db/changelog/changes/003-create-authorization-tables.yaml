@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-authorization-tables
+      author: vale
+      changes:
+        - createTable:
+            tableName: permission
+            columns:
+              - column: { name: id, type: varchar(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: realm_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_permission_realm, references: realm(id) } }
+              - column: { name: name, type: varchar(200), constraints: { nullable: false } }
+              - column: { name: subject, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: subject_label, type: varchar(200) }
+              - column: { name: action, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: action_label, type: varchar(200) }
+              - column: { name: condition_template, type: text }
+              - column: { name: condition_label, type: varchar(200) }
+              - column: { name: created_at, type: timestamp, constraints: { nullable: false } }
+        - addUniqueConstraint:
+            tableName: permission
+            columnNames: realm_id, subject, action
+            constraintName: uq_permission_realm_subject_action
+
+        - createTable:
+            tableName: role
+            columns:
+              - column: { name: id, type: varchar(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: realm_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_role_realm, references: realm(id) } }
+              - column: { name: name, type: varchar(200), constraints: { nullable: false } }
+              - column: { name: level, type: int }
+        - addUniqueConstraint:
+            tableName: role
+            columnNames: realm_id, name
+            constraintName: uq_role_realm_name
+
+        - createTable:
+            tableName: role_permission
+            columns:
+              - column: { name: role_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_role_permission_role, references: role(id) } }
+              - column: { name: permission_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_role_permission_permission, references: permission(id) } }
+
+        - createTable:
+            tableName: user_role
+            columns:
+              - column: { name: id, type: varchar(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: app_user_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_user_role_user, references: app_user(id) } }
+              - column: { name: role_id, type: varchar(36), constraints: { nullable: false, foreignKeyName: fk_user_role_role, references: role(id) } }
+              - column: { name: valid_from, type: timestamp, constraints: { nullable: false } }
+              - column: { name: valid_to, type: timestamp }
+              - column: { name: attributes, type: text }
