@@ -27,7 +27,7 @@ public class RealmExistenceFilter extends OncePerRequestFilter {
 
         if (!valid) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Realm non trovato o disabilitato: " + realmName);
+                    "Realm not found: " + realmName);
             return;
         }
 

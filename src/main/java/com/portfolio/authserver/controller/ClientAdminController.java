@@ -43,7 +43,7 @@ public class ClientAdminController {
 
         if (clientJpaRepository.findByRealm_NameAndClientId(realmName, request.clientId()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Client già esistente in questo realm: " + request.clientId());
+                    "Client already existing in this realm: " + request.clientId());
         }
 
         RegisteredClient.Builder builder = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -69,7 +69,7 @@ public class ClientAdminController {
     private Realm findRealmByName(String realmName) {
         return realmJpaRepository.findByName(realmName)
                 .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm non trovato: " + realmName));
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
     }
 
     private ClientResponse toResponse(Client entity) {

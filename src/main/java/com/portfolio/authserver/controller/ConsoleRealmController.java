@@ -29,7 +29,7 @@ public class ConsoleRealmController {
                          RedirectAttributes redirectAttributes) {
         try {
             realmService.createRealm(name, displayName);
-            redirectAttributes.addFlashAttribute("successMessage", "Realm '" + name + "' creato");
+            redirectAttributes.addFlashAttribute("successMessage", "Realm '" + name + "' created");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

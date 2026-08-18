@@ -35,11 +35,11 @@ public class UserAdminController {
     public UserResponse createUser(@PathVariable String realmName, @Valid @RequestBody CreateUserRequest request) {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Realm non trovato: " + realmName));
+                        "Realm not found: " + realmName));
 
         if (appUserJpaRepository.findByRealm_NameAndUsername(realmName, request.username()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Utente già esistente in questo realm: " + request.username());
+                    "Already existing user: " + request.username());
         }
 
         AppUser user = new AppUser();

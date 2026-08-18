@@ -43,10 +43,10 @@ public class ConsoleClientController {
                          @RequestParam String redirectUri, @RequestParam(defaultValue = "openid,profile") String scopes,
                          RedirectAttributes redirectAttributes) {
         Realm realm = realmJpaRepository.findByName(realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm non trovato"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
         if (clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Client già esistente: " + clientId);
+            redirectAttributes.addFlashAttribute("errorMessage", "Already existing client: " + clientId);
             return "redirect:/console/realms/" + realmName + "/clients";
         }
 
@@ -62,7 +62,7 @@ public class ConsoleClientController {
                 .build();
 
         jpaRegisteredClientRepository.saveForRealm(registeredClient, realm);
-        redirectAttributes.addFlashAttribute("successMessage", "Client '" + clientId + "' creato");
+        redirectAttributes.addFlashAttribute("successMessage", "Client '" + clientId + "' created");
         return "redirect:/console/realms/" + realmName + "/clients";
     }
 }

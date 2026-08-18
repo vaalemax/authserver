@@ -17,7 +17,7 @@ public class RealmAwareUserLookupService {
     public UserDetails loadUserByRealmAndUsername(String realmName, String username) {
         AppUser appUser = appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Utente non trovato: " + username + " nel realm " + realmName));
+                        "User not found: " + username + " in realm " + realmName));
 
         return User.withUsername(appUser.getUsername())
                 .password(appUser.getPassword())

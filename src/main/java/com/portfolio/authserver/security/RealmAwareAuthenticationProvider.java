@@ -20,7 +20,7 @@ public class RealmAwareAuthenticationProvider extends AbstractUserDetailsAuthent
                                                   UsernamePasswordAuthenticationToken authentication) {
         String presentedPassword = (String) authentication.getCredentials();
         if (presentedPassword == null || !passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
-            throw new BadCredentialsException("Credenziali non valide");
+            throw new BadCredentialsException("Invalid credentials");
         }
     }
 
@@ -30,7 +30,7 @@ public class RealmAwareAuthenticationProvider extends AbstractUserDetailsAuthent
                 ? details.getRealm() : null;
 
         if (realm == null || realm.isBlank()) {
-            throw new InternalAuthenticationServiceException("Parametro realm mancante nella request di login");
+            throw new InternalAuthenticationServiceException("Realm parameter missing in login request");
         }
         return userLookupService.loadUserByRealmAndUsername(realm, username);
     }

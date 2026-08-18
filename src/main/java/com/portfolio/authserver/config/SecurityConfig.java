@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .securityMatcher("/console/**", "/oauth2/authorization/**", "/login/oauth2/code/**")
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .oauth2Login(Customizer.withDefaults())
-                .logout(logout -> logout.logoutSuccessUrl("/console/realms").permitAll());
+                .logout(logout -> logout.logoutSuccessUrl("/login").permitAll());
 
         return http.build();
     }
@@ -98,7 +98,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(5) // fallback: tutto ciò che NON matcha la chain 2(era 1)
+    @Order(5)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize)
                         -> authorize
@@ -114,63 +114,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-    // Il "Client" registrato —> concettualmente identico a un Client dentro un Realm di Keycloak.
-    // In-memory per ora, JPA nella Sessione 3.
-    /*@Bean
-    public RegisteredClientRepository registeredClientRepository(PasswordEncoder passwordEncoder) {
-        RegisteredClient aetherClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("aether-client")
-                .clientSecret(passwordEncoder.encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://127.0.0.1:8080/authorized")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .clientSettings(ClientSettings.builder()
-                        .requireProofKey(true)             // PKCE obbligatorio: best practice OAuth 2.1
-                        .requireAuthorizationConsent(true)  // mostra la consent screen, utile per vedere il flusso
-                        .build())
-                .build();
-
-        return new InMemoryRegisteredClientRepository(aetherClient);
-    }*/
-
-    /*
-    // Coppia di chiavi RSA generata a runtime per firmare i JWT (RS256).
-    // In produzione va caricata da un keystore persistente — se la rigeneri
-    // a ogni riavvio, tutti i token emessi prima diventano invalidabili
-    // perché il JWKS espone chiavi diverse.
-    @Bean
-    public JWKSource<SecurityContext> jwkSource() {
-        KeyPair keyPair = generateRsaKey();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
-                .build();
-        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
-    }
-
-    private static KeyPair generateRsaKey() {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            return keyPairGenerator.generateKeyPair();
-        } catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-    }*/
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // L'issuer: finisce nel claim "iss" di ogni JWT e nel discovery document.
-    // Deve combaciare esattamente con l'URL su cui gira il server.
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
@@ -184,14 +132,4 @@ public class SecurityConfig {
                                                          PasswordEncoder passwordEncoder) {
         return new RealmAwareAuthenticationProvider(userLookupService, passwordEncoder);
     }
-
-    // Un solo utente in-memory per testare il login. Sessione 3: tabella "users" via JPA.
-    /*@Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails vale = User.withUsername("vale")
-                .password(passwordEncoder.encode("password"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(vale);
-    }*/
 }

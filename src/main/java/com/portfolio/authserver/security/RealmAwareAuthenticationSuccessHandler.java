@@ -21,6 +21,6 @@ public class RealmAwareAuthenticationSuccessHandler implements AuthenticationSuc
             response.sendRedirect(continueUrl);
             return;
         }
-        fallback.onAuthenticationSuccess(request, response, authentication); // rete di sicurezza per login non legati a un authorize
+        fallback.onAuthenticationSuccess(request, response, authentication);
     }
 }

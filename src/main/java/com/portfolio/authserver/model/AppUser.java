@@ -34,9 +34,4 @@ public class AppUser {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "realm_id", nullable = false)
     private Realm realm;
-
-    /*fetch = EAGER sulle collezioni non è a caso: la conversione verso RegisteredClient
-    avviene fuori da un contesto transazionale aperto quando Spring Security richiama il
-    repository durante l'autenticazione — con LAZY rischi una LazyInitializationException
-    a runtime, in un punto del codice che non controlli tu direttamente.*/
 }

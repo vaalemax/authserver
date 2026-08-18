@@ -13,16 +13,16 @@ public class RealmResolver {
 
     private final RealmJpaRepository realmJpaRepository;
 
-    // Va bene con pochi realm; con centinaia servirebbe una query mirata invece di findAll()
+    // alright with few realms, remove findAll() to scale with hundreds of realms
     public Realm resolveCurrentRealm() {
         AuthorizationServerContext context = AuthorizationServerContextHolder.getContext();
         if (context == null || context.getIssuer() == null) {
-            throw new IllegalStateException("Nessun contesto authorization server disponibile: impossibile risolvere il realm");
+            throw new IllegalStateException("Authorization server context unavailable: cannot resolve realm");
         }
         String issuer = context.getIssuer();
         return realmJpaRepository.findAll().stream()
                 .filter(realm -> issuer.endsWith(realm.getName()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Nessun realm corrisponde all'issuer: " + issuer));
+                .orElseThrow(() -> new IllegalStateException("No realm matches issuer: " + issuer));
     }
 }

@@ -10,9 +10,12 @@ import java.util.Set;
 
 @Entity
 @Table(name = "role")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
 public class Role {
-    @Id private String id;
+    @Id
+    private String id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "realm_id", nullable = false)

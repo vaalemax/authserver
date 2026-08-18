@@ -43,7 +43,7 @@ public class RealmAwareJwkSource implements JWKSource<SecurityContext> {
                     .keyID(realm.getRsaKeyId())
                     .build();
         } catch (Exception ex) {
-            throw new IllegalStateException("Impossibile ricostruire la chiave RSA del realm " + realm.getName(), ex);
+            throw new IllegalStateException("Unable to reconstruct the realm's RSA key " + realm.getName(), ex);
         }
     }
 }

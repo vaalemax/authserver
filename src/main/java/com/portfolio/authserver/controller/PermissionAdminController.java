@@ -32,11 +32,11 @@ public class PermissionAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public PermissionResponse createPermission(@PathVariable String realmName, @Valid @RequestBody CreatePermissionRequest request) {
         Realm realm = realmJpaRepository.findByName(realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm non trovato: " + realmName));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
 
         if (permissionJpaRepository.findByRealm_NameAndSubjectAndAction(realmName, request.subject(), request.action()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Permission già esistente per " + request.subject() + "/" + request.action());
+                    "Already existing permission for " + request.subject() + "/" + request.action());
         }
 
         Permission permission = new Permission();

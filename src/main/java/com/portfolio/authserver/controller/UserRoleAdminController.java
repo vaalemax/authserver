@@ -45,7 +45,7 @@ public class UserRoleAdminController {
         Role role = roleJpaRepository.findById(request.roleId())
                 .filter(r -> r.getRealm().getName().equals(realmName))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Role non trovato nel realm: " + request.roleId()));
+                        "Role not found: " + request.roleId()));
 
         UserRole userRole = new UserRole();
         userRole.setId(UUID.randomUUID().toString());
@@ -61,14 +61,14 @@ public class UserRoleAdminController {
     private AppUser findUserOrThrow(String realmName, String username) {
         return appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Utente non trovato: " + username));
+                        "User not found: " + username));
     }
 
     private String writeAttributes(List<UserRoleAttribute> attributes) {
         try {
             return objectMapper.writeValueAsString(attributes != null ? attributes : List.of());
         } catch (Exception ex) {
-            throw new IllegalStateException("Impossibile serializzare gli attributi", ex);
+            throw new IllegalStateException("Cannot serialize attributes", ex);
         }
     }
 

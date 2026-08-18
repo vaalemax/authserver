@@ -38,10 +38,10 @@ public class RoleAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public RoleResponse createRole(@PathVariable String realmName, @Valid @RequestBody CreateRoleRequest request) {
         Realm realm = realmJpaRepository.findByName(realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm non trovato: " + realmName));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
 
         if (roleJpaRepository.findByRealm_NameAndName(realmName, request.name()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Role già esistente: " + request.name());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already existing role: " + request.name());
         }
 
         Set<Permission> permissions = new HashSet<>();
@@ -50,7 +50,7 @@ public class RoleAdminController {
                 Permission permission = permissionJpaRepository.findById(permissionId)
                         .filter(p -> p.getRealm().getName().equals(realmName))
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                "Permission non trovata nel realm: " + permissionId));
+                                "Permission not found: " + permissionId));
                 permissions.add(permission);
             }
         }

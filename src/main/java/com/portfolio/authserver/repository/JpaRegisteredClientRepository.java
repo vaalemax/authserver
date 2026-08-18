@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,8 +42,6 @@ public class JpaRegisteredClientRepository implements RegisteredClientRepository
         clientJpaRepository.save(toEntity(registeredClient, realmResolver.resolveCurrentRealm()));
     }
 
-    // Usato SOLO dal seeder: a startup non c'è nessuna request in corso,
-    // quindi AuthorizationServerContextHolder è vuoto e save() normale fallirebbe.
     public void saveForRealm(RegisteredClient registeredClient, Realm realm) {
         clientJpaRepository.save(toEntity(registeredClient, realm));
     }
@@ -57,7 +54,8 @@ public class JpaRegisteredClientRepository implements RegisteredClientRepository
     @Override
     public RegisteredClient findByClientId(String clientId) {
         String realmName = realmResolver.resolveCurrentRealm().getName();
-        return clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).map(this::toRegisteredClient).orElse(null);
+        return clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId)
+                .map(this::toRegisteredClient).orElse(null);
     }
 
     private Client toEntity(RegisteredClient rc, Realm realm) {
@@ -105,7 +103,7 @@ public class JpaRegisteredClientRepository implements RegisteredClientRepository
         try {
             return objectMapper.writeValueAsString(map);
         } catch (Exception ex) {
-            throw new IllegalStateException("Impossibile serializzare i settings del client", ex);
+            throw new IllegalStateException("Cannot serialize client settings", ex);
         }
     }
 
@@ -113,7 +111,7 @@ public class JpaRegisteredClientRepository implements RegisteredClientRepository
         try {
             return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         } catch (Exception ex) {
-            throw new IllegalStateException("Impossibile deserializzare i settings del client", ex);
+            throw new IllegalStateException("Cannot deserialize client settings", ex);
         }
     }
 }

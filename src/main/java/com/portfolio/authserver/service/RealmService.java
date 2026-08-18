@@ -19,7 +19,7 @@ public class RealmService {
 
     public Realm createRealm(String name, String displayName) {
         if (realmJpaRepository.findByName(name).isPresent()) {
-            throw new IllegalArgumentException("Realm già esistente: " + name);
+            throw new IllegalArgumentException("Already existing realm: " + name);
         }
 
         KeyPair keyPair = RsaKeyGenerator.generate();

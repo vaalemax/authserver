@@ -9,9 +9,13 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "user_role")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserRole {
-    @Id private String id;
+
+    @Id
+    private String id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "app_user_id", nullable = false)
@@ -25,8 +29,8 @@ public class UserRole {
     private Instant validFrom;
 
     @Column(name = "valid_to")
-    private Instant validTo; // null = nessuna scadenza
+    private Instant validTo;
 
     @Column
-    private String attributes; // JSON: [{"key":"istatRegione","type":"string","value":"[1,2,3]","isArray":true}]
+    private String attributes; // JSON
 }

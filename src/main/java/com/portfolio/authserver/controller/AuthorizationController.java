@@ -29,7 +29,7 @@ public class AuthorizationController {
         String username = authentication.getToken().getSubject();
 
         AppUser user = appUserJpaRepository.findByRealm_NameAndUsername(realm, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato nel realm"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         return authorizationService.can(user, request.subject(), request.action());
     }

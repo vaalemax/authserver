@@ -9,7 +9,13 @@ import java.time.Instant;
 import java.util.List;
 
 public interface UserRoleJpaRepository extends JpaRepository<UserRole, String> {
-    @Query("select ur from UserRole ur where ur.appUser = :appUser and ur.validFrom <= :now and (ur.validTo is null or ur.validTo >= :now)")
+    @Query(value="""
+    select ur
+    from UserRole ur
+    where ur.appUser = :appUser
+    and ur.validFrom <= :now
+    and (ur.validTo is null or ur.validTo >= :now)
+    """)
     List<UserRole> findActiveForUser(AppUser appUser, Instant now);
 
     List<UserRole> findByAppUser(AppUser appUser);

@@ -13,7 +13,7 @@ public final class RsaKeyGenerator {
             keyPairGenerator.initialize(2048);
             return keyPairGenerator.generateKeyPair();
         } catch (Exception ex) {
-            throw new IllegalStateException("Impossibile generare la coppia RSA", ex);
+            throw new IllegalStateException("Cannot generate RSA pair", ex);
         }
     }
 }

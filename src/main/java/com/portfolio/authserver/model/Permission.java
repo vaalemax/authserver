@@ -32,7 +32,7 @@ public class Permission {
     private String actionLabel;
 
     @Column(name = "condition_template")
-    private String conditionTemplate; // es. "{istatRegione:{{istatRegione}}}", nullable
+    private String conditionTemplate;
 
     @Column(name = "condition_label")
     private String conditionLabel;
