@@ -1,11 +1,11 @@
 package com.portfolio.authserver.bootstrap;
 
-import com.portfolio.authserver.model.AppUser;
-import com.portfolio.authserver.model.Realm;
-import com.portfolio.authserver.repository.AppUserJpaRepository;
-import com.portfolio.authserver.repository.ClientJpaRepository;
-import com.portfolio.authserver.repository.JpaRegisteredClientRepository;
-import com.portfolio.authserver.service.RealmService;
+import com.portfolio.authserver.user.AppUser;
+import com.portfolio.authserver.realm.Realm;
+import com.portfolio.authserver.user.AppUserJpaRepository;
+import com.portfolio.authserver.client.ClientJpaRepository;
+import com.portfolio.authserver.client.JpaRegisteredClientRepository;
+import com.portfolio.authserver.realm.RealmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;

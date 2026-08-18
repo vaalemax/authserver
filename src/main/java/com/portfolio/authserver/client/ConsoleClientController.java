@@ -1,0 +1,66 @@
+package com.portfolio.authserver.client;
+
+import com.portfolio.authserver.realm.Realm;
+import com.portfolio.authserver.realm.RealmJpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Arrays;
+import java.util.UUID;
+
+@Controller
+@RequestMapping("/console/realms/{realmName}/clients")
+@RequiredArgsConstructor
+public class ConsoleClientController {
+
+    private final RealmJpaRepository realmJpaRepository;
+    private final ClientJpaRepository clientJpaRepository;
+    private final JpaRegisteredClientRepository jpaRegisteredClientRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @GetMapping
+    public String list(@PathVariable String realmName, Model model) {
+        model.addAttribute("realmName", realmName);
+        model.addAttribute("clients", clientJpaRepository.findByRealm_Name(realmName));
+        return "console/clients";
+    }
+
+    @PostMapping
+    public String create(@PathVariable String realmName,
+                         @RequestParam String clientId, @RequestParam String clientSecret,
+                         @RequestParam String redirectUri, @RequestParam(defaultValue = "openid,profile") String scopes,
+                         RedirectAttributes redirectAttributes) {
+        Realm realm = realmJpaRepository.findByName(realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
+
+        if (clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Already existing client: " + clientId);
+            return "redirect:/console/realms/" + realmName + "/clients";
+        }
+
+        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId(clientId)
+                .clientSecret(passwordEncoder.encode(clientSecret))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri(redirectUri)
+                .scopes(s -> s.addAll(Arrays.asList(scopes.split(","))))
+                .clientSettings(ClientSettings.builder().requireProofKey(false).requireAuthorizationConsent(false).build())
+                .build();
+
+        jpaRegisteredClientRepository.saveForRealm(registeredClient, realm);
+        redirectAttributes.addFlashAttribute("successMessage", "Client '" + clientId + "' created");
+        return "redirect:/console/realms/" + realmName + "/clients";
+    }
+}

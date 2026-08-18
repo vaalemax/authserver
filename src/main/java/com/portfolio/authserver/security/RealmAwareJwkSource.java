@@ -4,8 +4,8 @@ import com.nimbusds.jose.KeySourceException;
 import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import com.portfolio.authserver.model.Realm;
-import com.portfolio.authserver.service.RealmResolver;
+import com.portfolio.authserver.realm.Realm;
+import com.portfolio.authserver.realm.RealmResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,6 @@
 package com.portfolio.authserver.security;
 
-import com.portfolio.authserver.service.RealmAwareUserLookupService;
+import com.portfolio.authserver.user.RealmAwareUserLookupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;

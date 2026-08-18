@@ -1,7 +1,7 @@
 package com.portfolio.authserver.security;
 
-import com.portfolio.authserver.model.Realm;
-import com.portfolio.authserver.repository.RealmJpaRepository;
+import com.portfolio.authserver.realm.Realm;
+import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.*;
 

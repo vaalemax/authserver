@@ -1,8 +1,9 @@
 package com.portfolio.authserver.config;
 
-import com.portfolio.authserver.repository.RealmJpaRepository;
+import com.portfolio.authserver.realm.RealmExistenceFilter;
+import com.portfolio.authserver.realm.RealmJpaRepository;
 import com.portfolio.authserver.security.*;
-import com.portfolio.authserver.service.RealmAwareUserLookupService;
+import com.portfolio.authserver.user.RealmAwareUserLookupService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
