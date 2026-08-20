@@ -16,14 +16,14 @@
     </tr>
 </table>
 
-<h2>Nuovo client</h2>
+<h2>New client</h2>
 <form th:action="@{/console/realms/{name}/clients(name=${realmName})}" method="post">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     <label>Client ID <input type="text" name="clientId" required></label><br>
     <label>Client Secret <input type="text" name="clientSecret" required></label><br>
     <label>Redirect URI <input type="text" name="redirectUri" required></label><br>
-    <label>Scope (virgola) <input type="text" name="scopes" value="openid,profile"></label><br>
-    <button type="submit">Crea</button>
+    <label>Scope (comma) <input type="text" name="scopes" value="openid,profile"></label><br>
+    <button type="submit">Create</button>
 </form>
 </body>
 </html>

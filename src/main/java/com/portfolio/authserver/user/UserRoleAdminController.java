@@ -40,8 +40,7 @@ public class UserRoleAdminController {
                                    @Valid @RequestBody CreateUserRoleRequest request) {
         AppUser user = findUserOrThrow(realmName, username);
 
-        Role role = roleJpaRepository.findById(request.roleId())
-                .filter(r -> r.getRealm().getName().equals(realmName))
+        Role role = roleJpaRepository.findByIdAndRealm_Name(request.roleId(), realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Role not found: " + request.roleId()));
 

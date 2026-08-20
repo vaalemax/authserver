@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><title>Accedi</title></head>
+<head><title>Log in</title></head>
 <body>
-<h1>Accedi<span th:if="${realm}" th:text="' — ' + ${realm}"></span></h1>
-<p th:if="${error}" style="color:red">Credenziali non valide</p>
+<h1>Log in<span th:if="${realm}" th:text="' — ' + ${realm}"></span></h1>
+<p th:if="${error}" style="color:red">Credentials not valid</p>
 <form th:action="@{/login}" method="post">
     <input type="hidden" name="realm" th:value="${realm}" />
     <input type="hidden" name="continue" th:value="${continueUrl}" />
     <label>Username <input type="text" name="username" /></label><br/>
     <label>Password <input type="password" name="password" /></label><br/>
-    <button type="submit">Accedi</button>
+    <button type="submit">Log in</button>
 </form>
 </body>
 </html>

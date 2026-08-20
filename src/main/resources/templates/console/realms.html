@@ -12,7 +12,12 @@
         <td th:text="${realm.name}"></td>
         <td th:text="${realm.displayName}"></td>
         <td th:text="${realm.enabled}"></td>
-        <td><a th:href="@{/console/realms/{name}/clients(name=${realm.name})}">Gestisci client</a></td>
+        <td>
+            <a th:href="@{/console/realms/{name}/clients(name=${realm.name})}">Client</a> |
+            <a th:href="@{/console/realms/{name}/users(name=${realm.name})}">Utenti</a> |
+            <a th:href="@{/console/realms/{name}/roles(name=${realm.name})}">Ruoli</a> |
+            <a th:href="@{/console/realms/{name}/permissions(name=${realm.name})}">Permessi</a>
+        </td>
     </tr>
 </table>
 

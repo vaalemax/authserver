@@ -41,8 +41,7 @@ public class RoleAdminController {
         Set<Permission> permissions = new HashSet<>();
         if (request.permissionIds() != null) {
             for (String permissionId : request.permissionIds()) {
-                Permission permission = permissionJpaRepository.findById(permissionId)
-                        .filter(p -> p.getRealm().getName().equals(realmName))
+                Permission permission = permissionJpaRepository.findByIdAndRealm_Name(permissionId, realmName)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Permission not found: " + permissionId));
                 permissions.add(permission);
