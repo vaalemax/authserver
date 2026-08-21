@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -29,10 +30,17 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import java.util.LinkedHashMap;
 
 @Configuration
 @EnableWebSecurity
@@ -84,16 +92,18 @@ public class SecurityConfig {
 
         http
                 .securityMatcher(configurer.getEndpointsMatcher())
+                .addFilterAfter(new RealmMismatchFilter(), SecurityContextHolderFilter.class)
                 .addFilterBefore(new RealmExistenceFilter(realmJpaRepository), WebAsyncManagerIntegrationFilter.class)
                 .with(configurer, (as) -> as.oidc(Customizer.withDefaults()))
                 .requestCache(cache -> cache.requestCache(new NullRequestCache()))
-                .authorizeHttpRequests((authorize)
-                        -> authorize.anyRequest().authenticated())
-                .exceptionHandling((exceptions)
-                        -> exceptions.defaultAuthenticationEntryPointFor(
-                        new RealmAwareLoginUrlAuthenticationEntryPoint(),
-                        new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                ));
+                .authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
+                .exceptionHandling((exceptions) -> {
+                    LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPoints = new LinkedHashMap<>();
+                    entryPoints.put(new MediaTypeRequestMatcher(MediaType.TEXT_HTML), new RealmAwareLoginUrlAuthenticationEntryPoint());
+                    DelegatingAuthenticationEntryPoint entryPoint = new DelegatingAuthenticationEntryPoint(entryPoints);
+                    entryPoint.setDefaultEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                    exceptions.authenticationEntryPoint(entryPoint);
+                });
         return http.build();
     }
 
@@ -172,5 +182,10 @@ public class SecurityConfig {
                 .build();
 
         return new InMemoryClientRegistrationRepository(adminConsole);
+    }
+
+    private static String extractRealm(String requestUri) {
+        String[] segments = requestUri.split("/");
+        return segments.length > 1 ? segments[1] : null;
     }
 }

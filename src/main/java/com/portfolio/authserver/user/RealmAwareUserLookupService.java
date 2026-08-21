@@ -1,10 +1,16 @@
 package com.portfolio.authserver.user;
 
+import com.portfolio.authserver.security.RealmAwareUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,10 +23,11 @@ public class RealmAwareUserLookupService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found: " + username + " in realm " + realmName));
 
-        return User.withUsername(appUser.getUsername())
-                .password(appUser.getPassword())
-                .authorities(appUser.getRoles().stream().map(r -> "ROLE_" + r).toArray(String[]::new))
-                .disabled(!appUser.isEnabled())
-                .build();
+        Set<GrantedAuthority> authorities = appUser.getRoles().stream()
+                .map(r -> (GrantedAuthority) new SimpleGrantedAuthority("ROLE_" + r))
+                .collect(Collectors.toSet());
+
+        return new RealmAwareUserDetails(appUser.getUsername(), appUser.getPassword(), realmName,
+                appUser.isEnabled(), authorities);
     }
 }
