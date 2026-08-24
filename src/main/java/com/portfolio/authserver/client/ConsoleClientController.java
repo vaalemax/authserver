@@ -4,6 +4,7 @@ import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -27,6 +28,7 @@ public class ConsoleClientController {
     private final ClientJpaRepository clientJpaRepository;
     private final JpaRegisteredClientRepository jpaRegisteredClientRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClientService clientService;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
@@ -62,5 +64,47 @@ public class ConsoleClientController {
         jpaRegisteredClientRepository.saveForRealm(registeredClient, realm);
         redirectAttributes.addFlashAttribute("successMessage", "Client '" + clientId + "' created");
         return "redirect:/console/realms/" + realmName + "/clients";
+    }
+
+    @PatchMapping("/{clientId}")
+    public ClientResponse update(@PathVariable String realmName, @PathVariable String clientId,
+                                 @RequestBody UpdateClientRequest request) {
+        Realm realm = realmJpaRepository.findByName(realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
+
+        RegisteredClient existing = jpaRegisteredClientRepository.findByRealmAndClientId(realm, clientId);
+        if (existing == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId);
+        }
+
+        RegisteredClient.Builder builder = RegisteredClient.from(existing);
+
+        if (request.redirectUris() != null) {
+            builder.redirectUris(uris -> { uris.clear(); uris.addAll(request.redirectUris()); });
+        }
+        if (request.scopes() != null) {
+            builder.scopes(scopes -> { scopes.clear(); scopes.addAll(request.scopes()); });
+        }
+        if (request.requireProofKey() != null || request.requireAuthorizationConsent() != null) {
+            ClientSettings.Builder settings = ClientSettings.withSettings(existing.getClientSettings().getSettings());
+            if (request.requireProofKey() != null) settings.requireProofKey(request.requireProofKey());
+            if (request.requireAuthorizationConsent() != null)
+                settings.requireAuthorizationConsent(request.requireAuthorizationConsent());
+            builder.clientSettings(settings.build());
+        }
+        if (request.newClientSecret() != null && !request.newClientSecret().isBlank()) {
+            builder.clientSecret(passwordEncoder.encode(request.newClientSecret()));
+        }
+
+        jpaRegisteredClientRepository.saveForRealm(builder.build(), realm);
+        return clientService.toResponse(clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).orElseThrow());
+    }
+
+    @DeleteMapping("/{clientId}")
+    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String clientId) {
+        Client client = clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId));
+        clientJpaRepository.delete(client);
+        return ResponseEntity.noContent().build();
     }
 }

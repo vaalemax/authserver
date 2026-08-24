@@ -57,6 +57,12 @@ public class JpaRegisteredClientRepository implements RegisteredClientRepository
                 .map(this::toRegisteredClient).orElse(null);
     }
 
+    public RegisteredClient findByRealmAndClientId(Realm realm, String clientId) {
+        return clientJpaRepository.findByRealm_NameAndClientId(realm.getName(), clientId)
+                .map(this::toRegisteredClient)
+                .orElse(null);
+    }
+
     private Client toEntity(RegisteredClient rc, Realm realm) {
         Client entity = new Client();
         entity.setId(rc.getId());

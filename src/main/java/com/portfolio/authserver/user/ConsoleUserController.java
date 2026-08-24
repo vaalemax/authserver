@@ -1,9 +1,11 @@
 package com.portfolio.authserver.user;
 
+import com.portfolio.authserver.authorization.UserRoleJpaRepository;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +26,8 @@ public class ConsoleUserController {
     private final RealmJpaRepository realmJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final UserRoleJpaRepository userRoleJpaRepository;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
@@ -59,5 +63,39 @@ public class ConsoleUserController {
         redirectAttributes.addFlashAttribute(
                 "successMessage", "User '" + username + "' created");
         return "redirect:/console/realms/" + realmName + "/users";
+    }
+
+    @PatchMapping("/{username}")
+    public UserResponse update(@PathVariable String realmName, @PathVariable String username,
+                               @RequestBody UpdateUserRequest request) {
+        AppUser user = appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
+
+        if (request.password() != null && !request.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+        if (request.roles() != null) {
+            user.setRoles(request.roles());
+        }
+        if (request.enabled() != null) {
+            user.setEnabled(request.enabled());
+        }
+
+        return userService.toResponse(appUserJpaRepository.save(user));
+    }
+
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String username) {
+        AppUser user = appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
+
+        if (!userRoleJpaRepository.findByAppUser(user).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot delete: the user has ABAC role assigned. Remove them first.");
+        }
+
+        appUserJpaRepository.delete(user);
+        return ResponseEntity.noContent().build();
     }
 }
