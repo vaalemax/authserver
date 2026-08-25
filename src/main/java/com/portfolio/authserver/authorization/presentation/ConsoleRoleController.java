@@ -5,7 +5,7 @@ import com.portfolio.authserver.authorization.domain.PermissionRepository;
 import com.portfolio.authserver.authorization.domain.Role;
 import com.portfolio.authserver.authorization.domain.RoleRepository;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleRoleController {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 

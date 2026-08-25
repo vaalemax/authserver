@@ -8,7 +8,7 @@ import com.portfolio.authserver.authorization.domain.RoleRepository;
 import com.portfolio.authserver.authorization.presentation.dto.PermissionResponse;
 import com.portfolio.authserver.authorization.presentation.dto.UpdatePermissionRequest;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsolePermissionController {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final PermissionRepository permissionRepository;
     private final RoleRepository roleRepository;
     private final PermissionService permissionService;

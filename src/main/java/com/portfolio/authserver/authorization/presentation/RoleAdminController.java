@@ -6,7 +6,7 @@ import com.portfolio.authserver.authorization.presentation.dto.RoleResponse;
 import com.portfolio.authserver.authorization.presentation.dto.UpdateRoleRequest;
 import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RoleAdminController {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final AuthorizationMapper authorizationMapper;

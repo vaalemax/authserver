@@ -1,7 +1,7 @@
 package com.portfolio.authserver.user;
 
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserAdminController {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
     private final PasswordEncoder passwordEncoder;
 

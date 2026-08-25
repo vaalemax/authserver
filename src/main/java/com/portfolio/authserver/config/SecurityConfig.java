@@ -1,7 +1,7 @@
 package com.portfolio.authserver.config;
 
 import com.portfolio.authserver.realm.RealmExistenceFilter;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.security.*;
 import com.portfolio.authserver.user.RealmAwareUserLookupService;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +49,7 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http,
-                                                        RealmJpaRepository realmJpaRepository) throws Exception {
+                                                        RealmRepository realmJpaRepository) throws Exception {
         JwtDecoder masterRealmJwtDecoder = new MasterRealmJwtDecoder(realmJpaRepository);
 
         http
@@ -86,7 +86,7 @@ public class SecurityConfig {
     @Bean
     @Order(3)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
-            HttpSecurity http, RealmJpaRepository realmJpaRepository) throws Exception {
+            HttpSecurity http, RealmRepository realmJpaRepository) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer =
                 OAuth2AuthorizationServerConfigurer.authorizationServer();
 
@@ -110,7 +110,7 @@ public class SecurityConfig {
     @Bean
     @Order(4)
     public SecurityFilterChain authorizationApiSecurityFilterChain(HttpSecurity http,
-                                                                   RealmJpaRepository realmJpaRepository) throws Exception {
+                                                                   RealmRepository realmJpaRepository) throws Exception {
         http
                 .securityMatcher("/*/auth/**")
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())

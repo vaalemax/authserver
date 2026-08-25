@@ -1,7 +1,7 @@
 package com.portfolio.authserver.realm;
 
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +14,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class RealmExistenceFilter extends OncePerRequestFilter {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,

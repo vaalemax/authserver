@@ -1,7 +1,7 @@
 package com.portfolio.authserver.security;
 
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.*;
 
@@ -13,7 +13,7 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class MasterRealmJwtDecoder implements JwtDecoder {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private volatile JwtDecoder delegate;
 
     @Override

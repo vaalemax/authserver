@@ -2,7 +2,7 @@ package com.portfolio.authserver.user;
 
 import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsoleUserController {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;

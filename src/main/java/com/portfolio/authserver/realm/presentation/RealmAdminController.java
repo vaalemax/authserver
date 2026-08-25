@@ -4,7 +4,7 @@ import com.portfolio.authserver.authorization.domain.PermissionRepository;
 import com.portfolio.authserver.authorization.domain.RoleRepository;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.realm.application.RealmService;
 import com.portfolio.authserver.realm.presentation.dto.CreateRealmRequest;
 import com.portfolio.authserver.realm.presentation.dto.RealmResponse;
@@ -27,7 +27,7 @@ public class RealmAdminController {
 
     private final PermissionRepository permissionRepository;
     private final AppUserJpaRepository appUserJpaRepository;
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final ClientRepository clientRepository;
     private final RoleRepository roleRepository;
     private final RealmService realmService;

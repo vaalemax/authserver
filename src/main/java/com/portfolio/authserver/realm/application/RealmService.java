@@ -2,7 +2,7 @@ package com.portfolio.authserver.realm.application;
 
 import com.portfolio.authserver.crypto.RsaKeyGenerator;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RealmService {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
 
     public Realm createRealm(String name, String displayName) {
         if (realmJpaRepository.findByName(name).isPresent()) {

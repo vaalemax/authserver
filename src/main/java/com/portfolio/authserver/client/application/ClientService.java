@@ -6,7 +6,7 @@ import com.portfolio.authserver.client.infrastructure.RegisteredClientJpaReposit
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.realm.shared.RealmResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
@@ -27,12 +27,12 @@ import java.util.stream.Collectors;
 @Service
 public class ClientService {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final ClientRepository clientRepository;
     private final RealmResolver realmResolver;
     private final ObjectMapper objectMapper;
 
-    public ClientService(RealmJpaRepository realmJpaRepository,
+    public ClientService(RealmRepository realmJpaRepository,
                          ClientRepository clientRepository, RealmResolver realmResolver){
         this.realmJpaRepository = realmJpaRepository;
         this.clientRepository   =   clientRepository;

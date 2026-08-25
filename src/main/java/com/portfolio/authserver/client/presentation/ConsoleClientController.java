@@ -7,7 +7,7 @@ import com.portfolio.authserver.client.presentation.dto.ClientResponse;
 import com.portfolio.authserver.client.presentation.dto.UpdateClientRequest;
 import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleClientController {
 
-    private final RealmJpaRepository realmJpaRepository;
+    private final RealmRepository realmJpaRepository;
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
     private final ClientService clientService;
