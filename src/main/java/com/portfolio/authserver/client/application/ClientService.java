@@ -2,7 +2,7 @@ package com.portfolio.authserver.client.application;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portfolio.authserver.client.JpaRegisteredClientRepository;
+import com.portfolio.authserver.client.RegisteredClientJpaRepository;
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.Realm;
@@ -39,7 +39,7 @@ public class ClientService {
         this.realmResolver      =      realmResolver;
 
         this.objectMapper = new ObjectMapper();
-        ClassLoader classLoader = JpaRegisteredClientRepository.class.getClassLoader();
+        ClassLoader classLoader = RegisteredClientJpaRepository.class.getClassLoader();
         this.objectMapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
         this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
     }

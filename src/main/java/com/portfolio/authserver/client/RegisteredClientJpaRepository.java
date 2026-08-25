@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class JpaRegisteredClientRepository implements RegisteredClientRepository {
+public class RegisteredClientJpaRepository implements RegisteredClientRepository {
 
     private final ClientService clientService;
 
