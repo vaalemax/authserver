@@ -1,14 +1,13 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.domain;
 
 import com.portfolio.authserver.user.AppUser;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserRoleJpaRepository extends JpaRepository<UserRole, String> {
+public interface UserRoleRepository {
     @Query(value="""
     select ur
     from UserRole ur
@@ -22,5 +21,9 @@ public interface UserRoleJpaRepository extends JpaRepository<UserRole, String> {
 
     List<UserRole> findByRole(Role role);
 
-    Optional<UserRole> findByIdAndAppUser_Realm_NameAndAppUser_Username(String id, String realmName, String username);
+    Optional<UserRole> findByIdAndAppUserRealmNameAndAppUserUsername(String id, String realmName, String username);
+
+    UserRole save(UserRole userRole);
+
+    void delete(UserRole userRole);
 }
