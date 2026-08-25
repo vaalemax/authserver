@@ -1,7 +1,7 @@
 package com.portfolio.authserver.realm;
 
-import com.portfolio.authserver.authorization.PermissionJpaRepository;
-import com.portfolio.authserver.authorization.RoleJpaRepository;
+import com.portfolio.authserver.authorization.domain.PermissionRepository;
+import com.portfolio.authserver.authorization.domain.RoleRepository;
 import com.portfolio.authserver.client.ClientJpaRepository;
 import com.portfolio.authserver.user.AppUserJpaRepository;
 import jakarta.validation.Valid;
@@ -18,23 +18,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RealmAdminController {
 
+    private final RealmMapper realmMapper;
     private final RealmService realmService;
     private final RealmJpaRepository realmJpaRepository;
     private final ClientJpaRepository clientJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
-    private final RoleJpaRepository roleJpaRepository;
-    private final PermissionJpaRepository permissionJpaRepository;
+    private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
 
     @GetMapping
     public List<RealmResponse> findRealms() {
-        return realmService.listRealms().stream().map(realmService::toResponse).toList();
+        return realmService.listRealms().stream().map(realmMapper::toResponse).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RealmResponse createRealm(@Valid @RequestBody CreateRealmRequest request) {
         try {
-            return realmService.toResponse(realmService.createRealm(request.name(), request.displayName()));
+            return realmMapper.toResponse(realmService.createRealm(request.name(), request.displayName()));
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
@@ -48,7 +49,7 @@ public class RealmAdminController {
         if (request.displayName() != null) realm.setDisplayName(request.displayName());
         if (request.enabled() != null) realm.setEnabled(request.enabled());
 
-        return realmService.toResponse(realmJpaRepository.save(realm));
+        return realmMapper.toResponse(realmJpaRepository.save(realm));
     }
 
     @DeleteMapping("/{name}")
@@ -58,8 +59,8 @@ public class RealmAdminController {
 
         boolean hasClients = !clientJpaRepository.findByRealm_Name(name).isEmpty();
         boolean hasUsers = !appUserJpaRepository.findByRealm_Name(name).isEmpty();
-        boolean hasRoles = !roleJpaRepository.findByRealm_Name(name).isEmpty();
-        boolean hasPermissions = !permissionJpaRepository.findByRealm_Name(name).isEmpty();
+        boolean hasRoles = !roleRepository.findByRealmName(name).isEmpty();
+        boolean hasPermissions = !permissionRepository.findByRealmName(name).isEmpty();
 
         if (hasClients || hasUsers || hasRoles || hasPermissions) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
