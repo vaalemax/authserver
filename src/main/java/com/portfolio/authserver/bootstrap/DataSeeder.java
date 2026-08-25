@@ -3,7 +3,7 @@ package com.portfolio.authserver.bootstrap;
 import com.portfolio.authserver.client.application.ClientService;
 import com.portfolio.authserver.user.domain.AppUser;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.application.RealmService;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class DataSeeder implements ApplicationRunner {
     @Value("${admin.console-client-secret}")
     private String adminConsoleClientSecret;
 
-    private final AppUserJpaRepository appUserJpaRepository;
+    private final AppUserRepository appUserRepository;
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
     private final RealmService realmService;
@@ -80,7 +80,7 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private void seedConsoleUser(Realm master) {
-        if (appUserJpaRepository.findByRealm_NameAndUsername(MASTER_REALM, adminConsoleUsername).isPresent()) return;
+        if (appUserRepository.findByRealmNameAndUsername(MASTER_REALM, adminConsoleUsername).isPresent()) return;
 
         AppUser admin = new AppUser();
         admin.setId(UUID.randomUUID().toString());
@@ -89,7 +89,7 @@ public class DataSeeder implements ApplicationRunner {
         admin.setPassword(passwordEncoder.encode(adminConsolePassword));
         admin.setEnabled(true);
         admin.setRoles(Set.of("ADMIN"));
-        appUserJpaRepository.save(admin);
+        appUserRepository.save(admin);
     }
 
     private void seedConsoleClient(Realm master) {
@@ -115,7 +115,7 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private void seedUser(Realm realm) {
-        if (appUserJpaRepository.findByRealm_NameAndUsername(realm.getName(), "vale").isPresent())
+        if (appUserRepository.findByRealmNameAndUsername(realm.getName(), "vale").isPresent())
             return;
         AppUser vale = new AppUser();
         vale.setId(UUID.randomUUID().toString());
@@ -124,7 +124,7 @@ public class DataSeeder implements ApplicationRunner {
         vale.setPassword(passwordEncoder.encode("password"));
         vale.setEnabled(true);
         vale.setRoles(Set.of("ADMIN"));
-        appUserJpaRepository.save(vale);
+        appUserRepository.save(vale);
     }
 
     private void seedClient(Realm realm) {

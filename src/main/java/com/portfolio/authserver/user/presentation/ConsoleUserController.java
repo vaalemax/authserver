@@ -4,7 +4,7 @@ import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.user.domain.AppUser;
-import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import com.portfolio.authserver.user.presentation.dto.UpdateUserRequest;
 import com.portfolio.authserver.user.presentation.dto.UserResponse;
 import com.portfolio.authserver.user.presentation.mapper.UserMapper;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsoleUserController {
 
-    private final AppUserJpaRepository appUserJpaRepository;
+    private final AppUserRepository appUserRepository;
     private final UserRoleRepository userRoleRepository;
     private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
@@ -37,7 +37,7 @@ public class ConsoleUserController {
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
         model.addAttribute("realmName", realmName);
-        model.addAttribute("users", appUserJpaRepository.findByRealm_Name(realmName));
+        model.addAttribute("users", appUserRepository.findByRealmName(realmName));
         return "console/users";
     }
 
@@ -48,7 +48,7 @@ public class ConsoleUserController {
         Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
-        if (appUserJpaRepository.findByRealm_NameAndUsername(realmName, username).isPresent()) {
+        if (appUserRepository.findByRealmNameAndUsername(realmName, username).isPresent()) {
             redirectAttributes.addFlashAttribute(
                     "errorMessage", "Already existing user: " + username);
             return "redirect:/console/realms/" + realmName + "/users";
@@ -64,7 +64,7 @@ public class ConsoleUserController {
                 ? Arrays.stream(roles.split(",")).map(String::trim).collect(Collectors.toSet())
                 : Set.of());
 
-        appUserJpaRepository.save(user);
+        appUserRepository.save(user);
         redirectAttributes.addFlashAttribute(
                 "successMessage", "User '" + username + "' created");
         return "redirect:/console/realms/" + realmName + "/users";
@@ -73,7 +73,7 @@ public class ConsoleUserController {
     @PatchMapping("/{username}")
     public UserResponse update(@PathVariable String realmName, @PathVariable String username,
                                @RequestBody UpdateUserRequest request) {
-        AppUser user = appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
+        AppUser user = appUserRepository.findByRealmNameAndUsername(realmName, username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
 
         if (request.password() != null && !request.password().isBlank()) {
@@ -86,12 +86,12 @@ public class ConsoleUserController {
             user.setEnabled(request.enabled());
         }
 
-        return userMapper.toResponse(appUserJpaRepository.save(user));
+        return userMapper.toResponse(appUserRepository.save(user));
     }
 
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String username) {
-        AppUser user = appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
+        AppUser user = appUserRepository.findByRealmNameAndUsername(realmName, username)
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
 
@@ -100,7 +100,7 @@ public class ConsoleUserController {
                     "Cannot delete: the user has ABAC role assigned. Remove them first.");
         }
 
-        appUserJpaRepository.delete(user);
+        appUserRepository.delete(user);
         return ResponseEntity.noContent().build();
     }
 }

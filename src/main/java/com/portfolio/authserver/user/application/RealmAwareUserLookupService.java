@@ -2,7 +2,7 @@ package com.portfolio.authserver.user.application;
 
 import com.portfolio.authserver.security.RealmAwareUserDetails;
 import com.portfolio.authserver.user.domain.AppUser;
-import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RealmAwareUserLookupService {
 
-    private final AppUserJpaRepository appUserJpaRepository;
+    private final AppUserRepository appUserRepository;
 
     public UserDetails loadUserByRealmAndUsername(String realmName, String username) {
-        AppUser appUser = appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
+        AppUser appUser = appUserRepository.findByRealmNameAndUsername(realmName, username)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found: " + username + " in realm " + realmName));
 

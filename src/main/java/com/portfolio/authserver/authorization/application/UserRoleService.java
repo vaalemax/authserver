@@ -3,7 +3,7 @@ package com.portfolio.authserver.authorization.application;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.authserver.authorization.presentation.dto.UserRoleAttribute;
 import com.portfolio.authserver.user.domain.AppUser;
-import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,11 +15,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserRoleService {
 
-    private final AppUserJpaRepository appUserJpaRepository;
+    private final AppUserRepository appUserRepository;
     private final ObjectMapper objectMapper;
 
     public AppUser findUserOrThrow(String realmName, String username) {
-        return appUserJpaRepository.findByRealm_NameAndUsername(realmName, username)
+        return appUserRepository.findByRealmNameAndUsername(realmName, username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 

@@ -3,7 +3,7 @@ package com.portfolio.authserver.user.presentation;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.user.domain.AppUser;
-import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import com.portfolio.authserver.user.presentation.dto.CreateUserRequest;
 import com.portfolio.authserver.user.presentation.dto.UserResponse;
 import com.portfolio.authserver.user.presentation.mapper.UserMapper;
@@ -22,14 +22,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserAdminController {
 
-    private final AppUserJpaRepository appUserJpaRepository;
+    private final AppUserRepository appUserRepository;
     private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     @GetMapping
     public List<UserResponse> findUsers(@PathVariable String realmName) {
-        return appUserJpaRepository.findByRealm_Name(realmName).stream().map(userMapper::toResponse).toList();
+        return appUserRepository.findByRealmName(realmName).stream().map(userMapper::toResponse).toList();
     }
 
     @PostMapping
@@ -39,7 +39,7 @@ public class UserAdminController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Realm not found: " + realmName));
 
-        if (appUserJpaRepository.findByRealm_NameAndUsername(realmName, request.username()).isPresent()) {
+        if (appUserRepository.findByRealmNameAndUsername(realmName, request.username()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Already existing user: " + request.username());
         }
@@ -52,6 +52,6 @@ public class UserAdminController {
         user.setEnabled(true);
         user.setRoles(request.roles());
 
-        return userMapper.toResponse(appUserJpaRepository.save(user));
+        return userMapper.toResponse(appUserRepository.save(user));
     }
 }

@@ -4,7 +4,7 @@ import com.portfolio.authserver.authorization.application.AuthorizationService;
 import com.portfolio.authserver.authorization.presentation.dto.CanRequest;
 import com.portfolio.authserver.authorization.presentation.dto.CanResult;
 import com.portfolio.authserver.user.domain.AppUser;
-import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthorizationController {
 
     private final AuthorizationService authorizationService;
-    private final AppUserJpaRepository appUserJpaRepository;
+    private final AppUserRepository appUserRepository;
 
     @PostMapping("/{realm}/auth/can")
     public CanResult can(@PathVariable String realm,
@@ -28,7 +28,7 @@ public class AuthorizationController {
                          JwtAuthenticationToken authentication) {
         String username = authentication.getToken().getSubject();
 
-        AppUser user = appUserJpaRepository.findByRealm_NameAndUsername(realm, username)
+        AppUser user = appUserRepository.findByRealmNameAndUsername(realm, username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         return authorizationService.can(user, request.subject(), request.action());
