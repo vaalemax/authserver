@@ -14,7 +14,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class RealmExistenceFilter extends OncePerRequestFilter {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -22,7 +22,7 @@ public class RealmExistenceFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String realmName = extractRealm(request.getRequestURI());
-        boolean valid = realmName != null && realmJpaRepository.findByName(realmName)
+        boolean valid = realmName != null && realmRepository.findByName(realmName)
                 .map(Realm::isEnabled)
                 .orElse(false);
 

@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleRoleController {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
@@ -41,7 +41,7 @@ public class ConsoleRoleController {
                          @RequestParam(required = false) Integer level,
                          @RequestParam(required = false) List<String> permissionIds,
                          RedirectAttributes redirectAttributes) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
         if (roleRepository.findByRealmNameAndName(realmName, name).isPresent()) {

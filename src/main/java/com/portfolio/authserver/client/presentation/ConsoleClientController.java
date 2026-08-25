@@ -30,8 +30,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleClientController {
 
-    private final RealmRepository realmJpaRepository;
     private final ClientRepository clientRepository;
+    private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
     private final ClientService clientService;
     private final ClientMapper clientMapper;
@@ -49,7 +49,7 @@ public class ConsoleClientController {
                          @RequestParam String redirectUri,
                          @RequestParam(defaultValue = "openid,profile") String scopes,
                          RedirectAttributes redirectAttributes) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
         if (clientRepository.findByRealmNameAndClientId(realmName, clientId).isPresent()) {
@@ -79,7 +79,7 @@ public class ConsoleClientController {
     @PatchMapping("/{clientId}")
     public ClientResponse update(@PathVariable String realmName, @PathVariable String clientId,
                                  @RequestBody UpdateClientRequest request) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
         RegisteredClient existing = clientService.findByRealmAndClientId(realm, clientId);

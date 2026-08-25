@@ -27,8 +27,8 @@ public class RealmAdminController {
 
     private final PermissionRepository permissionRepository;
     private final AppUserJpaRepository appUserJpaRepository;
-    private final RealmRepository realmJpaRepository;
     private final ClientRepository clientRepository;
+    private final RealmRepository realmRepository;
     private final RoleRepository roleRepository;
     private final RealmService realmService;
     private final RealmMapper realmMapper;
@@ -50,18 +50,18 @@ public class RealmAdminController {
 
     @PatchMapping("/{name}")
     public RealmResponse update(@PathVariable String name, @RequestBody UpdateRealmRequest request) {
-        Realm realm = realmJpaRepository.findByName(name)
+        Realm realm = realmRepository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + name));
 
         if (request.displayName() != null) realm.setDisplayName(request.displayName());
         if (request.enabled() != null) realm.setEnabled(request.enabled());
 
-        return realmMapper.toResponse(realmJpaRepository.save(realm));
+        return realmMapper.toResponse(realmRepository.save(realm));
     }
 
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> delete(@PathVariable String name) {
-        Realm realm = realmJpaRepository.findByName(name)
+        Realm realm = realmRepository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + name));
 
         boolean hasClients = !clientRepository.findByRealmName(name).isEmpty();
@@ -74,7 +74,7 @@ public class RealmAdminController {
                     "Cannot delete realm: it still contains clients, users, roles or permissions.");
         }
 
-        realmJpaRepository.delete(realm);
+        realmRepository.delete(realm);
         return ResponseEntity.noContent().build();
     }
 }

@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RoleAdminController {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final AuthorizationMapper authorizationMapper;
@@ -38,7 +38,7 @@ public class RoleAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RoleResponse createRole(@PathVariable String realmName, @Valid @RequestBody CreateRoleRequest request) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
 
         if (roleRepository.findByRealmNameAndName(realmName, request.name()).isPresent()) {

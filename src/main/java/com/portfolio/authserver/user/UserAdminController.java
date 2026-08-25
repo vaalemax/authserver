@@ -17,8 +17,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserAdminController {
 
-    private final RealmRepository realmJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
+    private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
@@ -29,7 +29,7 @@ public class UserAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse createUser(@PathVariable String realmName, @Valid @RequestBody CreateUserRequest request) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Realm not found: " + realmName));
 

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RealmResolver {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
 
     // fine with few realms, remove findAll() to scale with hundreds of realms
     public Realm resolveCurrentRealm() {
@@ -20,7 +20,7 @@ public class RealmResolver {
             throw new IllegalStateException("Authorization server context unavailable: cannot resolve realm");
         }
         String issuer = context.getIssuer();
-        return realmJpaRepository.findAll().stream()
+        return realmRepository.findAll().stream()
                 .filter(realm -> issuer.endsWith(realm.getName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No realm matches issuer: " + issuer));

@@ -16,12 +16,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class ConsoleRealmController {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
     private final RealmService realmService;
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("realms", realmJpaRepository.findAll());
+        model.addAttribute("realms", realmRepository.findAll());
         return "console/realms";
     }
 

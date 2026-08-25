@@ -15,10 +15,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RealmService {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
 
     public Realm createRealm(String name, String displayName) {
-        if (realmJpaRepository.findByName(name).isPresent()) {
+        if (realmRepository.findByName(name).isPresent()) {
             throw new IllegalArgumentException("Already existing realm: " + name);
         }
 
@@ -31,14 +31,14 @@ public class RealmService {
         realm.setRsaKeyId(UUID.randomUUID().toString());
         realm.setRsaPublicKey(Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
         realm.setRsaPrivateKey(Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
-        return realmJpaRepository.save(realm);
+        return realmRepository.save(realm);
     }
 
     public Realm getOrCreateRealm(String name, String displayName) {
-        return realmJpaRepository.findByName(name).orElseGet(() -> createRealm(name, displayName));
+        return realmRepository.findByName(name).orElseGet(() -> createRealm(name, displayName));
     }
 
     public List<Realm> listRealms() {
-        return realmJpaRepository.findAll();
+        return realmRepository.findAll();
     }
 }

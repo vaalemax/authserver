@@ -49,8 +49,8 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http,
-                                                        RealmRepository realmJpaRepository) throws Exception {
-        JwtDecoder masterRealmJwtDecoder = new MasterRealmJwtDecoder(realmJpaRepository);
+                                                        RealmRepository realmRepository) throws Exception {
+        JwtDecoder masterRealmJwtDecoder = new MasterRealmJwtDecoder(realmRepository);
 
         http
                 .securityMatcher("/admin/**")
@@ -86,14 +86,14 @@ public class SecurityConfig {
     @Bean
     @Order(3)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
-            HttpSecurity http, RealmRepository realmJpaRepository) throws Exception {
+            HttpSecurity http, RealmRepository realmRepository) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer =
                 OAuth2AuthorizationServerConfigurer.authorizationServer();
 
         http
                 .securityMatcher(configurer.getEndpointsMatcher())
                 .addFilterAfter(new RealmMismatchFilter(), SecurityContextHolderFilter.class)
-                .addFilterBefore(new RealmExistenceFilter(realmJpaRepository), WebAsyncManagerIntegrationFilter.class)
+                .addFilterBefore(new RealmExistenceFilter(realmRepository), WebAsyncManagerIntegrationFilter.class)
                 .with(configurer, (as) -> as.oidc(Customizer.withDefaults()))
                 .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 .authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
@@ -110,13 +110,13 @@ public class SecurityConfig {
     @Bean
     @Order(4)
     public SecurityFilterChain authorizationApiSecurityFilterChain(HttpSecurity http,
-                                                                   RealmRepository realmJpaRepository) throws Exception {
+                                                                   RealmRepository realmRepository) throws Exception {
         http
                 .securityMatcher("/*/auth/**")
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(
                         JwtIssuerAuthenticationManagerResolver.fromTrustedIssuers(
-                                issuer -> realmJpaRepository.findAll().stream().anyMatch(r -> issuer.endsWith(r.getName()))
+                                issuer -> realmRepository.findAll().stream().anyMatch(r -> issuer.endsWith(r.getName()))
                         )
                 ))
                 .csrf(AbstractHttpConfigurer::disable)

@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsoleUserController {
 
-    private final RealmRepository realmJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-    private final UserRoleRepository userRoleRepository;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
@@ -40,7 +40,7 @@ public class ConsoleUserController {
     public String create(@PathVariable String realmName, @RequestParam String username,
                          @RequestParam String password, @RequestParam(required = false) String roles,
                          RedirectAttributes redirectAttributes) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
         if (appUserJpaRepository.findByRealm_NameAndUsername(realmName, username).isPresent()) {

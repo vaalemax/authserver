@@ -13,7 +13,7 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class MasterRealmJwtDecoder implements JwtDecoder {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
     private volatile JwtDecoder delegate;
 
     @Override
@@ -33,7 +33,7 @@ public class MasterRealmJwtDecoder implements JwtDecoder {
     }
 
     private JwtDecoder buildDecoder() {
-        Realm master = realmJpaRepository.findByName("master")
+        Realm master = realmRepository.findByName("master")
                 .orElseThrow(() -> new IllegalStateException("Realm 'master' not found"));
 
         RSAPublicKey publicKey = toPublicKey(master.getRsaPublicKey());

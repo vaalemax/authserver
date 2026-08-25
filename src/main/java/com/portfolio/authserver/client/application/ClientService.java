@@ -27,14 +27,14 @@ import java.util.stream.Collectors;
 @Service
 public class ClientService {
 
-    private final RealmRepository realmJpaRepository;
     private final ClientRepository clientRepository;
+    private final RealmRepository realmRepository;
     private final RealmResolver realmResolver;
     private final ObjectMapper objectMapper;
 
-    public ClientService(RealmRepository realmJpaRepository,
+    public ClientService(RealmRepository realmRepository,
                          ClientRepository clientRepository, RealmResolver realmResolver){
-        this.realmJpaRepository = realmJpaRepository;
+        this.realmRepository = realmRepository;
         this.clientRepository   =   clientRepository;
         this.realmResolver      =      realmResolver;
 
@@ -45,7 +45,7 @@ public class ClientService {
     }
 
     public Realm findRealmByName(String realmName) {
-        return realmJpaRepository.findByName(realmName)
+        return realmRepository.findByName(realmName)
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
     }

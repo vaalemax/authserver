@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PermissionAdminController {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
     private final PermissionRepository permissionRepository;
     private final AuthorizationMapper authorizationMapper;
 
@@ -33,7 +33,7 @@ public class PermissionAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PermissionResponse createPermission(@PathVariable String realmName, @Valid @RequestBody CreatePermissionRequest request) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
 
         if (permissionRepository.findByRealmNameAndSubjectAndAction(realmName, request.subject(), request.action()).isPresent()) {

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsolePermissionController {
 
-    private final RealmRepository realmJpaRepository;
+    private final RealmRepository realmRepository;
     private final PermissionRepository permissionRepository;
     private final RoleRepository roleRepository;
     private final PermissionService permissionService;
@@ -47,7 +47,7 @@ public class ConsolePermissionController {
                          @RequestParam(required = false) String conditionTemplate,
                          @RequestParam(required = false) String conditionLabel,
                          RedirectAttributes redirectAttributes) {
-        Realm realm = realmJpaRepository.findByName(realmName)
+        Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
         if (permissionRepository.findByRealmNameAndSubjectAndAction(realmName, subject, action).isPresent()) {
