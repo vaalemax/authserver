@@ -1,5 +1,7 @@
-package com.portfolio.authserver.client;
+package com.portfolio.authserver.client.presentation.mapper;
 
+import com.portfolio.authserver.client.domain.Client;
+import com.portfolio.authserver.client.presentation.dto.ClientResponse;
 import org.springframework.stereotype.Component;
 
 @Component
