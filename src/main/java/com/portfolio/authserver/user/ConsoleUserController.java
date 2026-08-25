@@ -1,6 +1,6 @@
 package com.portfolio.authserver.user;
 
-import com.portfolio.authserver.authorization.UserRoleJpaRepository;
+import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +26,8 @@ public class ConsoleUserController {
     private final RealmJpaRepository realmJpaRepository;
     private final AppUserJpaRepository appUserJpaRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
-    private final UserRoleJpaRepository userRoleJpaRepository;
+    private final UserMapper userMapper;
+    private final UserRoleRepository userRoleRepository;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
@@ -81,7 +81,7 @@ public class ConsoleUserController {
             user.setEnabled(request.enabled());
         }
 
-        return userService.toResponse(appUserJpaRepository.save(user));
+        return userMapper.toResponse(appUserJpaRepository.save(user));
     }
 
     @DeleteMapping("/{username}")
@@ -90,7 +90,7 @@ public class ConsoleUserController {
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
 
-        if (!userRoleJpaRepository.findByAppUser(user).isEmpty()) {
+        if (!userRoleRepository.findByAppUser(user).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cannot delete: the user has ABAC role assigned. Remove them first.");
         }
