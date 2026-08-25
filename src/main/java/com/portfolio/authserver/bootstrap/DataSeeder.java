@@ -30,7 +30,6 @@ public class DataSeeder implements ApplicationRunner {
     private static final String DEFAULT_REALM = "aether";
 
     private static final String MASTER_REALM = "master";
-    private final ClientService clientService;
 
     @Value("${admin.client-secret}")
     private String adminClientSecret;
@@ -47,6 +46,7 @@ public class DataSeeder implements ApplicationRunner {
     private final AppUserRepository appUserRepository;
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClientService clientService;
     private final RealmService realmService;
 
     @Override
