@@ -1,8 +1,13 @@
-package com.portfolio.authserver.user;
+package com.portfolio.authserver.user.presentation;
 
 import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
+import com.portfolio.authserver.user.domain.AppUser;
+import com.portfolio.authserver.user.domain.AppUserJpaRepository;
+import com.portfolio.authserver.user.presentation.dto.UpdateUserRequest;
+import com.portfolio.authserver.user.presentation.dto.UserResponse;
+import com.portfolio.authserver.user.presentation.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

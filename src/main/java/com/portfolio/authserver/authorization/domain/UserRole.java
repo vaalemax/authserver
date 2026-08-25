@@ -1,6 +1,6 @@
 package com.portfolio.authserver.authorization.domain;
 
-import com.portfolio.authserver.user.AppUser;
+import com.portfolio.authserver.user.domain.AppUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

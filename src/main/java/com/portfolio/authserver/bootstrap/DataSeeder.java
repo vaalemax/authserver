@@ -1,9 +1,9 @@
 package com.portfolio.authserver.bootstrap;
 
 import com.portfolio.authserver.client.application.ClientService;
-import com.portfolio.authserver.user.AppUser;
+import com.portfolio.authserver.user.domain.AppUser;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.user.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserJpaRepository;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.application.RealmService;
 import lombok.RequiredArgsConstructor;

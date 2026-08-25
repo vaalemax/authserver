@@ -10,7 +10,7 @@ import com.portfolio.authserver.realm.presentation.dto.CreateRealmRequest;
 import com.portfolio.authserver.realm.presentation.dto.RealmResponse;
 import com.portfolio.authserver.realm.presentation.dto.UpdateRealmRequest;
 import com.portfolio.authserver.realm.presentation.mapper.RealmMapper;
-import com.portfolio.authserver.user.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUserJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.portfolio.authserver.user;
+package com.portfolio.authserver.user.domain;
 
 import com.portfolio.authserver.realm.domain.Realm;
 import jakarta.persistence.*;

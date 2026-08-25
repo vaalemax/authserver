@@ -9,7 +9,7 @@ import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.authorization.presentation.dto.CanResult;
 import com.portfolio.authserver.authorization.presentation.dto.ConditionMatch;
 import com.portfolio.authserver.authorization.presentation.dto.UserRoleAttribute;
-import com.portfolio.authserver.user.AppUser;
+import com.portfolio.authserver.user.domain.AppUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,8 @@
-package com.portfolio.authserver.user;
+package com.portfolio.authserver.user.application;
 
 import com.portfolio.authserver.security.RealmAwareUserDetails;
+import com.portfolio.authserver.user.domain.AppUser;
+import com.portfolio.authserver.user.domain.AppUserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

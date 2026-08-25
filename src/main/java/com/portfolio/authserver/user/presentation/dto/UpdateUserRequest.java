@@ -1,4 +1,4 @@
-package com.portfolio.authserver.user;
+package com.portfolio.authserver.user.presentation.dto;
 
 import java.util.Set;
 

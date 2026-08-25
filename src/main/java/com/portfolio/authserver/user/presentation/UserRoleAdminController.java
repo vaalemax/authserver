@@ -1,4 +1,4 @@
-package com.portfolio.authserver.user;
+package com.portfolio.authserver.user.presentation;
 
 import com.portfolio.authserver.authorization.application.UserRoleService;
 import com.portfolio.authserver.authorization.domain.Role;
@@ -8,6 +8,7 @@ import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.authorization.presentation.dto.CreateUserRoleRequest;
 import com.portfolio.authserver.authorization.presentation.dto.UserRoleResponse;
 import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
+import com.portfolio.authserver.user.domain.AppUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

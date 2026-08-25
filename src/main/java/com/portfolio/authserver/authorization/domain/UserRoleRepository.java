@@ -1,6 +1,6 @@
 package com.portfolio.authserver.authorization.domain;
 
-import com.portfolio.authserver.user.AppUser;
+import com.portfolio.authserver.user.domain.AppUser;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;

@@ -9,7 +9,7 @@ import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.authorization.presentation.dto.UpdateUserRoleRequest;
 import com.portfolio.authserver.authorization.presentation.dto.UserRoleResponse;
 import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
-import com.portfolio.authserver.user.AppUser;
+import com.portfolio.authserver.user.domain.AppUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;

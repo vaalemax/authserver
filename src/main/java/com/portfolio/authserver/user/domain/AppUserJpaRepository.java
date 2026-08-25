@@ -1,4 +1,4 @@
-package com.portfolio.authserver.user;
+package com.portfolio.authserver.user.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

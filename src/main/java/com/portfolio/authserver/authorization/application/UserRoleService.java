@@ -2,8 +2,8 @@ package com.portfolio.authserver.authorization.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.authserver.authorization.presentation.dto.UserRoleAttribute;
-import com.portfolio.authserver.user.AppUser;
-import com.portfolio.authserver.user.AppUserJpaRepository;
+import com.portfolio.authserver.user.domain.AppUser;
+import com.portfolio.authserver.user.domain.AppUserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
