@@ -1,4 +1,4 @@
-package com.portfolio.authserver.client;
+package com.portfolio.authserver.client.presentation.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

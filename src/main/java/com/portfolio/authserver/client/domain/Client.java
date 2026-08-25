@@ -1,4 +1,4 @@
-package com.portfolio.authserver.client;
+package com.portfolio.authserver.client.domain;
 
 import com.portfolio.authserver.realm.Realm;
 import jakarta.persistence.*;
@@ -55,11 +55,9 @@ public class Client {
     @Column(name = "scope")
     private Set<String> scopes = new HashSet<>();
 
-    //@Lob
     @Column(name = "client_settings")
     private String clientSettings;
 
-    //@Lob
     @Column(name = "token_settings")
     private String tokenSettings;
 

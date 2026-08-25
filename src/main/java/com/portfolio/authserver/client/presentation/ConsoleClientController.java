@@ -1,5 +1,11 @@
-package com.portfolio.authserver.client;
+package com.portfolio.authserver.client.presentation;
 
+import com.portfolio.authserver.client.application.ClientService;
+import com.portfolio.authserver.client.domain.Client;
+import com.portfolio.authserver.client.domain.ClientRepository;
+import com.portfolio.authserver.client.presentation.dto.ClientResponse;
+import com.portfolio.authserver.client.presentation.dto.UpdateClientRequest;
+import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,28 +31,30 @@ import java.util.UUID;
 public class ConsoleClientController {
 
     private final RealmJpaRepository realmJpaRepository;
-    private final ClientJpaRepository clientJpaRepository;
-    private final JpaRegisteredClientRepository jpaRegisteredClientRepository;
+    private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClientService clientService;
     private final ClientMapper clientMapper;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
         model.addAttribute("realmName", realmName);
-        model.addAttribute("clients", clientJpaRepository.findByRealm_Name(realmName));
+        model.addAttribute("clients", clientRepository.findByRealmName(realmName));
         return "console/clients";
     }
 
     @PostMapping
     public String create(@PathVariable String realmName,
                          @RequestParam String clientId, @RequestParam String clientSecret,
-                         @RequestParam String redirectUri, @RequestParam(defaultValue = "openid,profile") String scopes,
+                         @RequestParam String redirectUri,
+                         @RequestParam(defaultValue = "openid,profile") String scopes,
                          RedirectAttributes redirectAttributes) {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
-        if (clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Already existing client: " + clientId);
+        if (clientRepository.findByRealmNameAndClientId(realmName, clientId).isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Already existing client: " + clientId);
             return "redirect:/console/realms/" + realmName + "/clients";
         }
 
@@ -58,11 +66,13 @@ public class ConsoleClientController {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri(redirectUri)
                 .scopes(s -> s.addAll(Arrays.asList(scopes.split(","))))
-                .clientSettings(ClientSettings.builder().requireProofKey(false).requireAuthorizationConsent(false).build())
+                .clientSettings(ClientSettings.builder().requireProofKey(false)
+                        .requireAuthorizationConsent(false).build())
                 .build();
 
-        jpaRegisteredClientRepository.saveForRealm(registeredClient, realm);
-        redirectAttributes.addFlashAttribute("successMessage", "Client '" + clientId + "' created");
+        clientService.saveForRealm(registeredClient, realm);
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Client '" + clientId + "' created");
         return "redirect:/console/realms/" + realmName + "/clients";
     }
 
@@ -72,7 +82,7 @@ public class ConsoleClientController {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
-        RegisteredClient existing = jpaRegisteredClientRepository.findByRealmAndClientId(realm, clientId);
+        RegisteredClient existing = clientService.findByRealmAndClientId(realm, clientId);
         if (existing == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId);
         }
@@ -96,15 +106,16 @@ public class ConsoleClientController {
             builder.clientSecret(passwordEncoder.encode(request.newClientSecret()));
         }
 
-        jpaRegisteredClientRepository.saveForRealm(builder.build(), realm);
-        return clientMapper.toResponse(clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).orElseThrow());
+        clientService.saveForRealm(builder.build(), realm);
+        return clientMapper.toResponse(clientRepository.findByRealmNameAndClientId(realmName, clientId).orElseThrow());
     }
 
     @DeleteMapping("/{clientId}")
     public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String clientId) {
-        Client client = clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId));
-        clientJpaRepository.delete(client);
+        Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Client not found: " + clientId));
+        clientRepository.delete(client);
         return ResponseEntity.noContent().build();
     }
 }

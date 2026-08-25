@@ -1,7 +1,11 @@
-package com.portfolio.authserver.client;
+package com.portfolio.authserver.client.presentation;
 
+import com.portfolio.authserver.client.application.ClientService;
+import com.portfolio.authserver.client.domain.ClientRepository;
+import com.portfolio.authserver.client.presentation.dto.ClientResponse;
+import com.portfolio.authserver.client.presentation.dto.CreateClientRequest;
+import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
 import com.portfolio.authserver.realm.Realm;
-import com.portfolio.authserver.realm.RealmJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,22 +25,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ClientAdminController {
 
-    private final RealmJpaRepository realmJpaRepository;
-    private final ClientJpaRepository clientJpaRepository;
-    private final JpaRegisteredClientRepository jpaRegisteredClientRepository;
+    private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClientService clientService;
+    private final ClientMapper clientMapper;
 
     @GetMapping
     public List<ClientResponse> findClients(@PathVariable String realmName) {
-        return clientJpaRepository.findByRealm_Name(realmName).stream().map(this::toResponse).toList();
+        return clientRepository.findByRealmName(realmName).stream().map(clientMapper::toResponse).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ClientResponse createClient(@PathVariable String realmName, @Valid @RequestBody CreateClientRequest request) {
-        Realm realm = findRealmByName(realmName);
+        Realm realm = clientService.findRealmByName(realmName);
 
-        if (clientJpaRepository.findByRealm_NameAndClientId(realmName, request.clientId()).isPresent()) {
+        if (clientRepository.findByRealmNameAndClientId(realmName, request.clientId()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Client already existing in this realm: " + request.clientId());
         }
@@ -55,19 +59,9 @@ public class ClientAdminController {
         request.redirectUris().forEach(builder::redirectUri);
         request.scopes().forEach(builder::scope);
 
-        jpaRegisteredClientRepository.saveForRealm(builder.build(), realm);
+        clientService.saveForRealm(builder.build(), realm);
 
-        return toResponse(clientJpaRepository.findByRealm_NameAndClientId(realmName, request.clientId())
+        return clientMapper.toResponse(clientRepository.findByRealmNameAndClientId(realmName, request.clientId())
                 .orElseThrow());
-    }
-
-    private Realm findRealmByName(String realmName) {
-        return realmJpaRepository.findByName(realmName)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
-    }
-
-    private ClientResponse toResponse(Client entity) {
-        return new ClientResponse(entity.getId(), entity.getClientId(), entity.getRedirectUris(), entity.getScopes());
     }
 }
