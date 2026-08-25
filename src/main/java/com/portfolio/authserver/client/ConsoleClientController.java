@@ -28,7 +28,7 @@ public class ConsoleClientController {
     private final ClientJpaRepository clientJpaRepository;
     private final JpaRegisteredClientRepository jpaRegisteredClientRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ClientService clientService;
+    private final ClientMapper clientMapper;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
@@ -97,7 +97,7 @@ public class ConsoleClientController {
         }
 
         jpaRegisteredClientRepository.saveForRealm(builder.build(), realm);
-        return clientService.toResponse(clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).orElseThrow());
+        return clientMapper.toResponse(clientJpaRepository.findByRealm_NameAndClientId(realmName, clientId).orElseThrow());
     }
 
     @DeleteMapping("/{clientId}")
