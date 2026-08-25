@@ -39,8 +39,4 @@ public class RealmService {
     public List<Realm> listRealms() {
         return realmJpaRepository.findAll();
     }
-
-    public RealmResponse toResponse(Realm realm) {
-        return new RealmResponse(realm.getId(), realm.getName(), realm.getDisplayName(), realm.isEnabled());
-    }
 }
