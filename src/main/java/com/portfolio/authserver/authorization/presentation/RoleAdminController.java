@@ -1,5 +1,10 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation;
 
+import com.portfolio.authserver.authorization.domain.*;
+import com.portfolio.authserver.authorization.presentation.dto.CreateRoleRequest;
+import com.portfolio.authserver.authorization.presentation.dto.RoleResponse;
+import com.portfolio.authserver.authorization.presentation.dto.UpdateRoleRequest;
+import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import jakarta.validation.Valid;
@@ -13,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin/realms/{realmName}/roles")
@@ -21,14 +25,14 @@ import java.util.stream.Collectors;
 public class RoleAdminController {
 
     private final RealmJpaRepository realmJpaRepository;
-    private final RoleJpaRepository roleJpaRepository;
-    private final PermissionJpaRepository permissionJpaRepository;
-    private final RoleService roleService;
-    private final UserRoleJpaRepository userRoleJpaRepository;
+    private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
+    private final AuthorizationMapper authorizationMapper;
+    private final UserRoleRepository userRoleRepository;
 
     @GetMapping
     public List<RoleResponse> findRoles(@PathVariable String realmName) {
-        return roleJpaRepository.findByRealm_Name(realmName).stream().map(roleService::toResponse).toList();
+        return roleRepository.findByRealmName(realmName).stream().map(authorizationMapper::toResponse).toList();
     }
 
     @PostMapping
@@ -37,14 +41,14 @@ public class RoleAdminController {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
 
-        if (roleJpaRepository.findByRealm_NameAndName(realmName, request.name()).isPresent()) {
+        if (roleRepository.findByRealmNameAndName(realmName, request.name()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Already existing role: " + request.name());
         }
 
         Set<Permission> permissions = new HashSet<>();
         if (request.permissionIds() != null) {
             for (String permissionId : request.permissionIds()) {
-                Permission permission = permissionJpaRepository.findByIdAndRealm_Name(permissionId, realmName)
+                Permission permission = permissionRepository.findByIdAndRealmName(permissionId, realmName)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Permission not found: " + permissionId));
                 permissions.add(permission);
@@ -58,14 +62,14 @@ public class RoleAdminController {
         role.setLevel(request.level());
         role.setPermissions(permissions);
 
-        return roleService.toResponse(roleJpaRepository.save(role));
+        return authorizationMapper.toResponse(roleRepository.save(role));
     }
 
     @PatchMapping("/{roleId}")
     public RoleResponse update(@PathVariable String realmName, @PathVariable String roleId,
                                @RequestBody UpdateRoleRequest request) {
-        Role role = roleJpaRepository.findByIdAndRealm_Name(roleId, realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role non trovato"));
+        Role role = roleRepository.findByIdAndRealmName(roleId, realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
         if (request.level() != null) {
             role.setLevel(request.level());
@@ -73,26 +77,27 @@ public class RoleAdminController {
         if (request.permissionIds() != null) {
             Set<Permission> permissions = new HashSet<>();
             for (String id : request.permissionIds()) {
-                permissions.add(permissionJpaRepository.findByIdAndRealm_Name(id, realmName)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Permission non trovata: " + id)));
+                permissions.add(permissionRepository.findByIdAndRealmName(id, realmName)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Permission not found: " + id)));
             }
             role.setPermissions(permissions);
         }
 
-        return roleService.toResponse(roleJpaRepository.save(role));
+        return authorizationMapper.toResponse(roleRepository.save(role));
     }
 
     @DeleteMapping("/{roleId}")
     public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String roleId) {
-        Role role = roleJpaRepository.findByIdAndRealm_Name(roleId, realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role non trovato"));
+        Role role = roleRepository.findByIdAndRealmName(roleId, realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
-        if (!userRoleJpaRepository.findByRole(role).isEmpty()) {
+        if (!userRoleRepository.findByRole(role).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Impossibile eliminare: il ruolo è assegnato ad almeno un utente. Rimuovi le assegnazioni prima.");
+                    "Cannot delete: the role is assigned to a user. Remove usages first.");
         }
 
-        roleJpaRepository.delete(role);
+        roleRepository.delete(role);
         return ResponseEntity.noContent().build();
     }
 }

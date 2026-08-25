@@ -1,5 +1,9 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation;
 
+import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.domain.PermissionRepository;
+import com.portfolio.authserver.authorization.domain.Role;
+import com.portfolio.authserver.authorization.domain.RoleRepository;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +25,14 @@ import java.util.UUID;
 public class ConsoleRoleController {
 
     private final RealmJpaRepository realmJpaRepository;
-    private final RoleJpaRepository roleJpaRepository;
-    private final PermissionJpaRepository permissionJpaRepository;
+    private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
         model.addAttribute("realmName", realmName);
-        model.addAttribute("roles", roleJpaRepository.findByRealm_Name(realmName));
-        model.addAttribute("allPermissions", permissionJpaRepository.findByRealm_Name(realmName));
+        model.addAttribute("roles", roleRepository.findByRealmName(realmName));
+        model.addAttribute("allPermissions", permissionRepository.findByRealmName(realmName));
         return "console/roles";
     }
 
@@ -40,7 +44,7 @@ public class ConsoleRoleController {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
-        if (roleJpaRepository.findByRealm_NameAndName(realmName, name).isPresent()) {
+        if (roleRepository.findByRealmNameAndName(realmName, name).isPresent()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Already existing role: " + name);
             return "redirect:/console/realms/" + realmName + "/roles";
@@ -49,7 +53,7 @@ public class ConsoleRoleController {
         Set<Permission> permissions = new HashSet<>();
         if (permissionIds != null) {
             for (String id : permissionIds) {
-                permissionJpaRepository.findByIdAndRealm_Name(id, realmName)
+                permissionRepository.findByIdAndRealmName(id, realmName)
                         .ifPresent(permissions::add);
             }
         }
@@ -61,7 +65,7 @@ public class ConsoleRoleController {
         role.setLevel(level);
         role.setPermissions(permissions);
 
-        roleJpaRepository.save(role);
+        roleRepository.save(role);
         redirectAttributes.addFlashAttribute("successMessage",
                 "Created '" + name + "' role");
         return "redirect:/console/realms/" + realmName + "/roles";

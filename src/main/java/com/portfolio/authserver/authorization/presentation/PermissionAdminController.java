@@ -1,5 +1,10 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation;
 
+import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.domain.PermissionRepository;
+import com.portfolio.authserver.authorization.presentation.dto.CreatePermissionRequest;
+import com.portfolio.authserver.authorization.presentation.dto.PermissionResponse;
+import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import jakarta.validation.Valid;
@@ -17,11 +22,12 @@ import java.util.UUID;
 public class PermissionAdminController {
 
     private final RealmJpaRepository realmJpaRepository;
-    private final PermissionJpaRepository permissionJpaRepository;
+    private final PermissionRepository permissionRepository;
+    private final AuthorizationMapper authorizationMapper;
 
     @GetMapping
     public List<PermissionResponse> findPermissions(@PathVariable String realmName) {
-        return permissionJpaRepository.findByRealm_Name(realmName).stream().map(this::toResponse).toList();
+        return permissionRepository.findByRealmName(realmName).stream().map(authorizationMapper::toResponse).toList();
     }
 
     @PostMapping
@@ -30,7 +36,7 @@ public class PermissionAdminController {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
 
-        if (permissionJpaRepository.findByRealm_NameAndSubjectAndAction(realmName, request.subject(), request.action()).isPresent()) {
+        if (permissionRepository.findByRealmNameAndSubjectAndAction(realmName, request.subject(), request.action()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Already existing permission for " + request.subject() + "/" + request.action());
         }
@@ -46,10 +52,6 @@ public class PermissionAdminController {
         permission.setConditionTemplate(request.conditionTemplate());
         permission.setConditionLabel(request.conditionLabel());
 
-        return toResponse(permissionJpaRepository.save(permission));
-    }
-
-    private PermissionResponse toResponse(Permission p) {
-        return new PermissionResponse(p.getId(), p.getName(), p.getSubject(), p.getAction(), p.getConditionTemplate());
+        return authorizationMapper.toResponse(permissionRepository.save(permission));
     }
 }

@@ -1,4 +1,4 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.domain;
 
 import com.portfolio.authserver.user.AppUser;
 import jakarta.persistence.*;

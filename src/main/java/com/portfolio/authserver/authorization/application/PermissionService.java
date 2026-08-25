@@ -1,5 +1,7 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.application;
 
+import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.presentation.dto.PermissionResponse;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,5 +1,8 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation;
 
+import com.portfolio.authserver.authorization.application.AuthorizationService;
+import com.portfolio.authserver.authorization.presentation.dto.CanRequest;
+import com.portfolio.authserver.authorization.presentation.dto.CanResult;
 import com.portfolio.authserver.user.AppUser;
 import com.portfolio.authserver.user.AppUserJpaRepository;
 import jakarta.validation.Valid;

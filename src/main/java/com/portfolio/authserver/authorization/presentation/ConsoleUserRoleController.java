@@ -1,8 +1,15 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portfolio.authserver.authorization.application.UserRoleService;
+import com.portfolio.authserver.authorization.domain.Role;
+import com.portfolio.authserver.authorization.domain.RoleRepository;
+import com.portfolio.authserver.authorization.domain.UserRole;
+import com.portfolio.authserver.authorization.domain.UserRoleRepository;
+import com.portfolio.authserver.authorization.presentation.dto.UpdateUserRoleRequest;
+import com.portfolio.authserver.authorization.presentation.dto.UserRoleResponse;
+import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
 import com.portfolio.authserver.user.AppUser;
-import com.portfolio.authserver.user.AppUserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -23,18 +30,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleUserRoleController {
 
-    private final RoleJpaRepository roleJpaRepository;
-    private final UserRoleJpaRepository userRoleJpaRepository;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
     private final ObjectMapper objectMapper;
     private final UserRoleService userRoleService;
+    private final AuthorizationMapper authorizationMapper;
 
     @GetMapping
     public String list(@PathVariable String realmName, @PathVariable String username, Model model) {
         AppUser user = userRoleService.findUserOrThrow(realmName, username);
         model.addAttribute("realmName", realmName);
         model.addAttribute("username", username);
-        model.addAttribute("assignments", userRoleJpaRepository.findByAppUser(user));
-        model.addAttribute("availableRoles", roleJpaRepository.findByRealm_Name(realmName));
+        model.addAttribute("assignments", userRoleRepository.findByAppUser(user));
+        model.addAttribute("availableRoles", roleRepository.findByRealmName(realmName));
         return "console/user-roles";
     }
 
@@ -49,7 +57,7 @@ public class ConsoleUserRoleController {
                          RedirectAttributes redirectAttributes) {
         AppUser user = userRoleService.findUserOrThrow(realmName, username);
 
-        Role role = roleJpaRepository.findByIdAndRealm_Name(roleId, realmName)
+        Role role = roleRepository.findByIdAndRealmName(roleId, realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
 
         String normalizedAttributes = "[]";
@@ -73,7 +81,7 @@ public class ConsoleUserRoleController {
         userRole.setValidTo(validTo != null ? validTo.atZone(ZoneId.systemDefault()).toInstant() : null);
         userRole.setAttributes(normalizedAttributes);
 
-        userRoleJpaRepository.save(userRole);
+        userRoleRepository.save(userRole);
         redirectAttributes.addFlashAttribute("successMessage",
                 "Role '" + role.getName() + "' assigned to " + username);
         return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
@@ -82,24 +90,24 @@ public class ConsoleUserRoleController {
     @PatchMapping("/{userRoleId}")
     public UserRoleResponse update(@PathVariable String realmName, @PathVariable String username,
                                    @PathVariable String userRoleId, @RequestBody UpdateUserRoleRequest request) {
-        UserRole userRole = userRoleJpaRepository
-                .findByIdAndAppUser_Realm_NameAndAppUser_Username(userRoleId, realmName, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assegnazione non trovata"));
+        UserRole userRole = userRoleRepository
+                .findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId, realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found"));
 
         if (request.validTo() != null) userRole.setValidTo(request.validTo());
-        if (request.attributes() != null) userRole.setAttributes(writeAttributes(request.attributes()));
+        if (request.attributes() != null) userRole.setAttributes(userRoleService.writeAttributes(request.attributes()));
 
-        return userRoleService.toResponse(userRoleJpaRepository.save(userRole));
+        return authorizationMapper.toResponse(userRoleRepository.save(userRole));
     }
 
     @DeleteMapping("/{userRoleId}")
     public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String username,
                                        @PathVariable String userRoleId) {
-        UserRole userRole = userRoleJpaRepository
-                .findByIdAndAppUser_Realm_NameAndAppUser_Username(userRoleId, realmName, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assegnazione non trovata"));
+        UserRole userRole = userRoleRepository
+                .findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId, realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found"));
 
-        userRoleJpaRepository.delete(userRole);
+        userRoleRepository.delete(userRole);
         return ResponseEntity.noContent().build();
     }
 }

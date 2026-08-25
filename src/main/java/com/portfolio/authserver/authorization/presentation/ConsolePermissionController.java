@@ -1,5 +1,12 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation;
 
+import com.portfolio.authserver.authorization.application.PermissionService;
+import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.domain.PermissionRepository;
+import com.portfolio.authserver.authorization.domain.Role;
+import com.portfolio.authserver.authorization.domain.RoleRepository;
+import com.portfolio.authserver.authorization.presentation.dto.PermissionResponse;
+import com.portfolio.authserver.authorization.presentation.dto.UpdatePermissionRequest;
 import com.portfolio.authserver.realm.Realm;
 import com.portfolio.authserver.realm.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +28,14 @@ import java.util.stream.Collectors;
 public class ConsolePermissionController {
 
     private final RealmJpaRepository realmJpaRepository;
-    private final PermissionJpaRepository permissionJpaRepository;
-    private final RoleJpaRepository roleJpaRepository;
+    private final PermissionRepository permissionRepository;
+    private final RoleRepository roleRepository;
     private final PermissionService permissionService;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
         model.addAttribute("realmName", realmName);
-        model.addAttribute("permissions", permissionJpaRepository.findByRealm_Name(realmName));
+        model.addAttribute("permissions", permissionRepository.findByRealmName(realmName));
         return "console/permissions";
     }
 
@@ -43,7 +50,7 @@ public class ConsolePermissionController {
         Realm realm = realmJpaRepository.findByName(realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
 
-        if (permissionJpaRepository.findByRealm_NameAndSubjectAndAction(realmName, subject, action).isPresent()) {
+        if (permissionRepository.findByRealmNameAndSubjectAndAction(realmName, subject, action).isPresent()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Already existing permission " + subject + "/" + action);
             return "redirect:/console/realms/" + realmName + "/permissions";
@@ -60,7 +67,7 @@ public class ConsolePermissionController {
         permission.setConditionTemplate(conditionTemplate);
         permission.setConditionLabel(conditionLabel);
 
-        permissionJpaRepository.save(permission);
+        permissionRepository.save(permission);
         redirectAttributes.addFlashAttribute("successMessage",
                 "Created '" + name + "' permission");
         return "redirect:/console/realms/" + realmName + "/permissions";
@@ -69,8 +76,8 @@ public class ConsolePermissionController {
     @PatchMapping("/{permissionId}")
     public PermissionResponse update(@PathVariable String realmName, @PathVariable String permissionId,
                                      @RequestBody UpdatePermissionRequest request) {
-        Permission permission = permissionJpaRepository.findByIdAndRealm_Name(permissionId, realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission non trovata"));
+        Permission permission = permissionRepository.findByIdAndRealmName(permissionId, realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found"));
 
         if (request.name() != null) permission.setName(request.name());
         if (request.subjectLabel() != null) permission.setSubjectLabel(request.subjectLabel());
@@ -78,22 +85,22 @@ public class ConsolePermissionController {
         if (request.conditionTemplate() != null) permission.setConditionTemplate(request.conditionTemplate());
         if (request.conditionLabel() != null) permission.setConditionLabel(request.conditionLabel());
 
-        return permissionService.toResponse(permissionJpaRepository.save(permission));
+        return permissionService.toResponse(permissionRepository.save(permission));
     }
 
     @DeleteMapping("/{permissionId}")
     public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String permissionId) {
-        Permission permission = permissionJpaRepository.findByIdAndRealm_Name(permissionId, realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission non trovata"));
+        Permission permission = permissionRepository.findByIdAndRealmName(permissionId, realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found"));
 
-        List<Role> linkedRoles = roleJpaRepository.findByPermissions_Id(permissionId);
+        List<Role> linkedRoles = roleRepository.findByPermissionsId(permissionId);
         if (!linkedRoles.isEmpty()) {
             String names = linkedRoles.stream().map(Role::getName).collect(Collectors.joining(", "));
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Impossibile eliminare: usata dai ruoli [" + names + "]. Rimuovi il collegamento prima.");
+                    "Cannot delete: used in roles [" + names + "]. Remove usages first.");
         }
 
-        permissionJpaRepository.delete(permission);
+        permissionRepository.delete(permission);
         return ResponseEntity.noContent().build();
     }
 }

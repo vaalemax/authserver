@@ -1,8 +1,14 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.domain.UserRole;
+import com.portfolio.authserver.authorization.domain.UserRoleRepository;
+import com.portfolio.authserver.authorization.presentation.dto.CanResult;
+import com.portfolio.authserver.authorization.presentation.dto.ConditionMatch;
+import com.portfolio.authserver.authorization.presentation.dto.UserRoleAttribute;
 import com.portfolio.authserver.user.AppUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +27,12 @@ public class AuthorizationService {
 
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{(\\w+)}}");
 
-    private final UserRoleJpaRepository userRoleJpaRepository;
+    private final UserRoleRepository userRoleRepository;
     private final ObjectMapper objectMapper;
 
     public CanResult can(AppUser user, String subject, String action) {
         Instant now = Instant.now();
-        List<UserRole> assignments = userRoleJpaRepository.findActiveForUser(user, now);
+        List<UserRole> assignments = userRoleRepository.findActiveForUser(user, now);
 
         List<ConditionMatch> matches = new ArrayList<>();
 

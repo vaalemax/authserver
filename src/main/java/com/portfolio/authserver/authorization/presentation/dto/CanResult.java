@@ -1,4 +1,4 @@
-package com.portfolio.authserver.authorization;
+package com.portfolio.authserver.authorization.presentation.dto;
 
 
 import java.util.List;
