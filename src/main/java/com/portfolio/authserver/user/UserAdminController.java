@@ -20,10 +20,11 @@ public class UserAdminController {
     private final AppUserJpaRepository appUserJpaRepository;
     private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @GetMapping
     public List<UserResponse> findUsers(@PathVariable String realmName) {
-        return appUserJpaRepository.findByRealm_Name(realmName).stream().map(this::toResponse).toList();
+        return appUserJpaRepository.findByRealm_Name(realmName).stream().map(userMapper::toResponse).toList();
     }
 
     @PostMapping
@@ -46,10 +47,6 @@ public class UserAdminController {
         user.setEnabled(true);
         user.setRoles(request.roles());
 
-        return toResponse(appUserJpaRepository.save(user));
-    }
-
-    private UserResponse toResponse(AppUser user) {
-        return new UserResponse(user.getId(), user.getUsername(), user.getRoles(), user.isEnabled());
+        return userMapper.toResponse(appUserJpaRepository.save(user));
     }
 }
