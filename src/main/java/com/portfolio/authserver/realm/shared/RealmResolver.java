@@ -1,5 +1,7 @@
-package com.portfolio.authserver.realm;
+package com.portfolio.authserver.realm.shared;
 
+import com.portfolio.authserver.realm.domain.Realm;
+import com.portfolio.authserver.realm.domain.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContext;
 import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContextHolder;
@@ -11,7 +13,7 @@ public class RealmResolver {
 
     private final RealmJpaRepository realmJpaRepository;
 
-    // alright with few realms, remove findAll() to scale with hundreds of realms
+    // fine with few realms, remove findAll() to scale with hundreds of realms
     public Realm resolveCurrentRealm() {
         AuthorizationServerContext context = AuthorizationServerContextHolder.getContext();
         if (context == null || context.getIssuer() == null) {

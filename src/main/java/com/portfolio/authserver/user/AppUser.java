@@ -1,6 +1,6 @@
 package com.portfolio.authserver.user;
 
-import com.portfolio.authserver.realm.Realm;
+import com.portfolio.authserver.realm.domain.Realm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

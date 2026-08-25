@@ -1,4 +1,4 @@
-package com.portfolio.authserver.realm;
+package com.portfolio.authserver.realm.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

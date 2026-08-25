@@ -1,7 +1,7 @@
 package com.portfolio.authserver.user;
 
-import com.portfolio.authserver.realm.Realm;
-import com.portfolio.authserver.realm.RealmJpaRepository;
+import com.portfolio.authserver.realm.domain.Realm;
+import com.portfolio.authserver.realm.domain.RealmJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

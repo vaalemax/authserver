@@ -1,5 +1,7 @@
-package com.portfolio.authserver.realm;
+package com.portfolio.authserver.realm.presentation;
 
+import com.portfolio.authserver.realm.domain.RealmJpaRepository;
+import com.portfolio.authserver.realm.application.RealmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +18,7 @@ public class ConsoleRealmController {
 
     private final RealmJpaRepository realmJpaRepository;
     private final RealmService realmService;
+
     @GetMapping
     public String list(Model model) {
         model.addAttribute("realms", realmJpaRepository.findAll());

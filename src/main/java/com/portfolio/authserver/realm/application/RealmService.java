@@ -1,6 +1,8 @@
-package com.portfolio.authserver.realm;
+package com.portfolio.authserver.realm.application;
 
 import com.portfolio.authserver.crypto.RsaKeyGenerator;
+import com.portfolio.authserver.realm.domain.Realm;
+import com.portfolio.authserver.realm.domain.RealmJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

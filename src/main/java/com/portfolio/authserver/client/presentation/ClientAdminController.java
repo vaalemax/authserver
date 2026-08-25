@@ -5,7 +5,7 @@ import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.client.presentation.dto.ClientResponse;
 import com.portfolio.authserver.client.presentation.dto.CreateClientRequest;
 import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
-import com.portfolio.authserver.realm.Realm;
+import com.portfolio.authserver.realm.domain.Realm;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

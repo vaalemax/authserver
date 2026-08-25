@@ -1,4 +1,4 @@
-package com.portfolio.authserver.realm;
+package com.portfolio.authserver.realm.presentation.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
