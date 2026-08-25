@@ -1,4 +1,4 @@
-package com.portfolio.authserver.client;
+package com.portfolio.authserver.client.infrastructure;
 
 import com.portfolio.authserver.client.application.ClientService;
 import lombok.RequiredArgsConstructor;

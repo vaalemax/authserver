@@ -2,7 +2,7 @@ package com.portfolio.authserver.client.application;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portfolio.authserver.client.RegisteredClientJpaRepository;
+import com.portfolio.authserver.client.infrastructure.RegisteredClientJpaRepository;
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.Realm;
