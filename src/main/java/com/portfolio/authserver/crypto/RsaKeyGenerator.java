@@ -5,8 +5,6 @@ import java.security.KeyPairGenerator;
 
 public final class RsaKeyGenerator {
 
-    private RsaKeyGenerator() {}
-
     public static KeyPair generate() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
