@@ -2,7 +2,7 @@ package com.portfolio.authserver.realm;
 
 import com.portfolio.authserver.authorization.domain.PermissionRepository;
 import com.portfolio.authserver.authorization.domain.RoleRepository;
-import com.portfolio.authserver.client.ClientJpaRepository;
+import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.user.AppUserJpaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class RealmAdminController {
     private final RealmMapper realmMapper;
     private final RealmService realmService;
     private final RealmJpaRepository realmJpaRepository;
-    private final ClientJpaRepository clientJpaRepository;
+    private final ClientRepository clientRepository;
     private final AppUserJpaRepository appUserJpaRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
@@ -57,7 +57,7 @@ public class RealmAdminController {
         Realm realm = realmJpaRepository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + name));
 
-        boolean hasClients = !clientJpaRepository.findByRealm_Name(name).isEmpty();
+        boolean hasClients = !clientRepository.findByRealmName(name).isEmpty();
         boolean hasUsers = !appUserJpaRepository.findByRealm_Name(name).isEmpty();
         boolean hasRoles = !roleRepository.findByRealmName(name).isEmpty();
         boolean hasPermissions = !permissionRepository.findByRealmName(name).isEmpty();
