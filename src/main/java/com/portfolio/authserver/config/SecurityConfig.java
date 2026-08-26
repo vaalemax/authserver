@@ -1,6 +1,6 @@
 package com.portfolio.authserver.config;
 
-import com.portfolio.authserver.realm.RealmExistenceFilter;
+import com.portfolio.authserver.realm.infrastructure.RealmExistenceFilter;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.security.*;
 import com.portfolio.authserver.security.login.*;
