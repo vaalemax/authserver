@@ -5,15 +5,17 @@
 <p><a th:href="@{/console/realms/{name}/users/{user}/roles(name=${realmName},user=${username})}">← Assigned roles</a></p>
 <h1>Edit assigned role</h1>
 
-<form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/update(name=${realmName},user=${username},id=${userRoleId})}" method="post">
+<form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/update(name=${realmName},user=${username},id=${userRole.id})}" method="post">
   <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
   <label>Role <input type="text" th:value="${userRole.role.name}" disabled></label><br>
   <p style="color:#666; font-size:.85em;">Role is immutable. Delete and recreate the role to change it.</p>
 
-  <label>Valid from <input type="datetime-local" name="validFrom" th:value="${userRole.validFrom}" required></label><br>
-  <label>Valid to <input type="datetime-local" name="validTo" th:value="${userRole.validTo}"></label><br>
-  <label>Attributes <input type="text" name="attributes" th:value="${userRole.attributes}" required></label><br>
+  <label>Valid from <input type="datetime-local" name="validFrom" th:value="${validFromLocal}" required></label><br>
+  <label>Valid to <input type="datetime-local" name="validTo" th:value="${validToLocal}"></label><br>
+  <label>Attributes (JSON)<br>
+    <textarea name="attributes" rows="4" cols="80" required th:text="${userRole.attributes}"></textarea>
+  </label><br>
 
   <button type="submit">Save</button>
 </form>

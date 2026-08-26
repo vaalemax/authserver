@@ -85,31 +85,37 @@ public class ConsoleUserRoleController {
         UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
                         realmName, username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+
         model.addAttribute("realmName", realmName);
         model.addAttribute("username", username);
         model.addAttribute("userRole", userRole);
+        model.addAttribute("validFromLocal", LocalDateTime.ofInstant(
+                userRole.getValidFrom(), ZoneId.systemDefault()));
+        model.addAttribute("validToLocal", userRole.getValidTo() != null
+                ? LocalDateTime.ofInstant(userRole.getValidTo(), ZoneId.systemDefault()) : null);
         return "console/user-role-edit";
     }
 
     @PostMapping("/{userRoleId}/update")
     public String update(@PathVariable String realmName, @PathVariable String username,
                          @PathVariable String userRoleId,
-                         @RequestParam(required = false) Instant validFrom,
-                         @RequestParam(required = false) Instant validTo,
-                         @RequestParam(required = false) String attributes,
+                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validFrom,
+                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                             LocalDateTime validTo,
+                         @RequestParam String attributes,
                          RedirectAttributes redirectAttributes) {
         UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
                 realmName, username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
-        userRole.setValidFrom(validFrom);
-        userRole.setValidTo(validTo);
+        userRole.setValidFrom(validFrom.atZone(ZoneId.systemDefault()).toInstant());
+        userRole.setValidTo(validTo != null ? validTo.atZone(ZoneId.systemDefault()).toInstant() : null);
         userRole.setAttributes(attributes);
         userRoleRepository.save(userRole);
 
         redirectAttributes.addFlashAttribute("successMessage",
-                "Updated '" + username + "s' role association");
-        return "redirect:/console/realms/" + realmName + "/user-roles";
+                "Updated role assignment for '" + username + "'");
+        return "redirect:/console/realms/"+realmName+"/users/"+username+"/roles";
     }
 
     @PostMapping("/{userRoleId}/delete")
@@ -121,7 +127,7 @@ public class ConsoleUserRoleController {
 
         userRoleRepository.delete(userRole);
         redirectAttributes.addFlashAttribute("successMessage",
-                "Deleted role for user '"+username+"'");
-        return "redirect:/console/realms/" + realmName + "/user-roles";
+                "Deleted role assignment for user '"+username+"'");
+        return "redirect:/console/realms/"+realmName+"/users/"+username+"/roles";
     }
 }
