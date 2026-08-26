@@ -76,21 +76,23 @@ public class ConsoleUserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         model.addAttribute("realmName", realmName);
-        model.addAttribute("username", username);
         model.addAttribute("appUser", appUser);
         return "console/user-edit";
     }
 
     @PostMapping("/{username}/update")
     public String update(@PathVariable String realmName, @PathVariable String username,
-                         @RequestParam(required = false) String newUsername,
                          @RequestParam(required = false) String password,
+                         @RequestParam(required = false) Boolean enabled,
                          RedirectAttributes redirectAttributes) {
         AppUser appUser = appUserRepository.findByRealmNameAndUsername(realmName, username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        appUser.setUsername(newUsername);
-        appUser.setPassword(passwordEncoder.encode(password));
+        if (password != null && !password.isBlank()) {
+            appUser.setPassword(passwordEncoder.encode(password));
+        }
+
+        appUser.setEnabled(enabled != null && enabled);
 
         appUserRepository.save(appUser);
         redirectAttributes.addFlashAttribute("successMessage",
@@ -105,9 +107,9 @@ public class ConsoleUserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         appUser.setEnabled(false);
-
         appUserRepository.save(appUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Disabled user");
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Disabled user '"+username+"'");
         return "redirect:/console/realms/" + realmName + "/users";
     }
 }

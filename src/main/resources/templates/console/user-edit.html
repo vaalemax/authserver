@@ -2,14 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><title>Edit User — Admin Console</title></head>
 <body>
-<p><a th:href="@{/console/realms/{name}/users/{user}/edit(name=${realmName},user=${username})}">← Users</a></p>
-<h1>Edit user</h1>
+<p><a th:href="@{/console/realms/{name}/users(name=${realmName})}">← Users</a></p>
+<h1>Edit user <span th:text="${appUser.username}"></span></h1>
 
-<form th:action="@{/console/realms/{name}/users/{user}/update(name=${realmName},user=${username})}" method="post">
+<form th:action="@{/console/realms/{name}/users/{user}/update(name=${realmName},user=${appUser.username})}" method="post">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-    <label>Username <input type="text" name="username" th:value="${appUser.username}"></label><br>
-    <label>Password <input type="text" name="password"></label><br>
+    <label>Username <input type="text" th:value="${appUser.username}" disabled></label><br>
+    <p style="color:#666; font-size:.85em;">Username is immutable — it's embedded in every token this user has ever been issued.</p>
+
+    <label>New password <input type="password" name="password" placeholder="Leave blank to keep unchanged"></label><br>
+    <label><input type="checkbox" name="enabled" th:checked="${appUser.enabled}" value="true"> Enabled</label><br>
 
     <button type="submit">Save</button>
 </form>
