@@ -73,34 +73,54 @@ public class ConsolePermissionController {
         return "redirect:/console/realms/" + realmName + "/permissions";
     }
 
-    @PatchMapping("/{permissionId}")
-    public PermissionResponse update(@PathVariable String realmName, @PathVariable String permissionId,
-                                     @RequestBody UpdatePermissionRequest request) {
+    @GetMapping("/{permissionId}/edit")
+    public String editForm(@PathVariable String realmName, @PathVariable String permissionId, Model model) {
+        Permission permission = permissionRepository.findByIdAndRealmName(permissionId, realmName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found"));
+        model.addAttribute("realmName", realmName);
+        model.addAttribute("permission", permission);
+        return "console/permission-edit";
+    }
+
+    @PostMapping("/{permissionId}/update")
+    public String update(@PathVariable String realmName, @PathVariable String permissionId,
+                         @RequestParam String name,
+                         @RequestParam(required = false) String subjectLabel,
+                         @RequestParam(required = false) String actionLabel,
+                         @RequestParam(required = false) String conditionTemplate,
+                         @RequestParam(required = false) String conditionLabel,
+                         RedirectAttributes redirectAttributes) {
         Permission permission = permissionRepository.findByIdAndRealmName(permissionId, realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found"));
 
-        if (request.name() != null) permission.setName(request.name());
-        if (request.subjectLabel() != null) permission.setSubjectLabel(request.subjectLabel());
-        if (request.actionLabel() != null) permission.setActionLabel(request.actionLabel());
-        if (request.conditionTemplate() != null) permission.setConditionTemplate(request.conditionTemplate());
-        if (request.conditionLabel() != null) permission.setConditionLabel(request.conditionLabel());
+        permission.setName(name);
+        permission.setSubjectLabel(subjectLabel);
+        permission.setActionLabel(actionLabel);
+        permission.setConditionTemplate(conditionTemplate);
+        permission.setConditionLabel(conditionLabel);
+        permissionRepository.save(permission);
 
-        return permissionService.toResponse(permissionRepository.save(permission));
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Updated '" + name + "' permission");
+        return "redirect:/console/realms/" + realmName + "/permissions";
     }
 
-    @DeleteMapping("/{permissionId}")
-    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String permissionId) {
+    @PostMapping("/{permissionId}/delete")
+    public String delete(@PathVariable String realmName, @PathVariable String permissionId,
+                         RedirectAttributes redirectAttributes) {
         Permission permission = permissionRepository.findByIdAndRealmName(permissionId, realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found"));
 
         List<Role> linkedRoles = roleRepository.findByPermissionsId(permissionId);
         if (!linkedRoles.isEmpty()) {
             String names = linkedRoles.stream().map(Role::getName).collect(Collectors.joining(", "));
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
+            redirectAttributes.addFlashAttribute("errorMessage",
                     "Cannot delete: used in roles [" + names + "]. Remove usages first.");
+            return "redirect:/console/realms/" + realmName + "/permissions";
         }
 
         permissionRepository.delete(permission);
-        return ResponseEntity.noContent().build();
+        redirectAttributes.addFlashAttribute("successMessage", "Deleted permission");
+        return "redirect:/console/realms/" + realmName + "/permissions";
     }
 }
