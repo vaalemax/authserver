@@ -21,9 +21,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PermissionAdminController {
 
-    private final RealmRepository realmRepository;
     private final PermissionRepository permissionRepository;
     private final AuthorizationMapper authorizationMapper;
+    private final RealmRepository realmRepository;
 
     @GetMapping
     public List<PermissionResponse> findPermissions(@PathVariable String realmName) {

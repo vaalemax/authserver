@@ -30,11 +30,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleUserRoleController {
 
-    private final RoleRepository roleRepository;
-    private final UserRoleRepository userRoleRepository;
-    private final ObjectMapper objectMapper;
-    private final UserRoleService userRoleService;
     private final AuthorizationMapper authorizationMapper;
+    private final UserRoleRepository userRoleRepository;
+    private final UserRoleService userRoleService;
+    private final RoleRepository roleRepository;
+    private final ObjectMapper objectMapper;
 
     @GetMapping
     public String list(@PathVariable String realmName, @PathVariable String username, Model model) {

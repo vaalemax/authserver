@@ -24,11 +24,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RoleAdminController {
 
-    private final RealmRepository realmRepository;
-    private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final AuthorizationMapper authorizationMapper;
     private final UserRoleRepository userRoleRepository;
+    private final RealmRepository realmRepository;
+    private final RoleRepository roleRepository;
 
     @GetMapping
     public List<RoleResponse> findRoles(@PathVariable String realmName) {
