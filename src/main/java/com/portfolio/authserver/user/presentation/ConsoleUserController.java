@@ -1,5 +1,7 @@
 package com.portfolio.authserver.user.presentation;
 
+import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.domain.Role;
 import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
@@ -18,9 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -70,37 +70,44 @@ public class ConsoleUserController {
         return "redirect:/console/realms/" + realmName + "/users";
     }
 
-    @PatchMapping("/{username}")
-    public UserResponse update(@PathVariable String realmName, @PathVariable String username,
-                               @RequestBody UpdateUserRequest request) {
-        AppUser user = appUserRepository.findByRealmNameAndUsername(realmName, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
+    @GetMapping("/{username}/edit")
+    public String editForm(@PathVariable String realmName, @PathVariable String username, Model model) {
+        AppUser appUser = appUserRepository.findByRealmNameAndUsername(realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (request.password() != null && !request.password().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.password()));
-        }
-        if (request.roles() != null) {
-            user.setRoles(request.roles());
-        }
-        if (request.enabled() != null) {
-            user.setEnabled(request.enabled());
-        }
-
-        return userMapper.toResponse(appUserRepository.save(user));
+        model.addAttribute("realmName", realmName);
+        model.addAttribute("username", username);
+        model.addAttribute("appUser", appUser);
+        return "console/user-edit";
     }
 
-    @DeleteMapping("/{username}")
-    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String username) {
-        AppUser user = appUserRepository.findByRealmNameAndUsername(realmName, username)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + username));
+    @PostMapping("/{username}/update")
+    public String update(@PathVariable String realmName, @PathVariable String username,
+                         @RequestParam(required = false) String newUsername,
+                         @RequestParam(required = false) String password,
+                         RedirectAttributes redirectAttributes) {
+        AppUser appUser = appUserRepository.findByRealmNameAndUsername(realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (!userRoleRepository.findByAppUser(user).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Cannot delete: the user has ABAC role assigned. Remove them first.");
-        }
+        appUser.setUsername(newUsername);
+        appUser.setPassword(passwordEncoder.encode(password));
 
-        appUserRepository.delete(user);
-        return ResponseEntity.noContent().build();
+        appUserRepository.save(appUser);
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Updated '" + username + "'");
+        return "redirect:/console/realms/" + realmName + "/users";
+    }
+
+    @PostMapping("/{username}/delete")
+    public String delete(@PathVariable String realmName, @PathVariable String username,
+                         RedirectAttributes redirectAttributes) {
+        AppUser appUser = appUserRepository.findByRealmNameAndUsername(realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        appUser.setEnabled(false);
+
+        appUserRepository.save(appUser);
+        redirectAttributes.addFlashAttribute("successMessage", "Disabled user");
+        return "redirect:/console/realms/" + realmName + "/users";
     }
 }

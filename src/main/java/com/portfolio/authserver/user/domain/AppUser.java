@@ -25,6 +25,7 @@ public class AppUser {
     @Column(nullable = false)
     private String password;
 
+    @Column
     private boolean enabled = true;
 
     @ElementCollection(fetch = FetchType.EAGER)
