@@ -2,18 +2,11 @@ package com.portfolio.authserver.authorization.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.authserver.authorization.application.UserRoleService;
-import com.portfolio.authserver.authorization.domain.Role;
-import com.portfolio.authserver.authorization.domain.RoleRepository;
-import com.portfolio.authserver.authorization.domain.UserRole;
-import com.portfolio.authserver.authorization.domain.UserRoleRepository;
-import com.portfolio.authserver.authorization.presentation.dto.UpdateUserRoleRequest;
-import com.portfolio.authserver.authorization.presentation.dto.UserRoleResponse;
-import com.portfolio.authserver.authorization.presentation.mapper.AuthorizationMapper;
+import com.portfolio.authserver.authorization.domain.*;
 import com.portfolio.authserver.user.domain.AppUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +23,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsoleUserRoleController {
 
-    private final AuthorizationMapper authorizationMapper;
     private final UserRoleRepository userRoleRepository;
     private final UserRoleService userRoleService;
     private final RoleRepository roleRepository;
@@ -87,27 +79,49 @@ public class ConsoleUserRoleController {
         return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
     }
 
-    @PatchMapping("/{userRoleId}")
-    public UserRoleResponse update(@PathVariable String realmName, @PathVariable String username,
-                                   @PathVariable String userRoleId, @RequestBody UpdateUserRoleRequest request) {
-        UserRole userRole = userRoleRepository
-                .findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId, realmName, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found"));
-
-        if (request.validTo() != null) userRole.setValidTo(request.validTo());
-        if (request.attributes() != null) userRole.setAttributes(userRoleService.writeAttributes(request.attributes()));
-
-        return authorizationMapper.toResponse(userRoleRepository.save(userRole));
+    @GetMapping("/{userRoleId}/edit")
+    public String editForm(@PathVariable String realmName, @PathVariable String username,
+                           @PathVariable String userRoleId, Model model) {
+        UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
+                        realmName, username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+        model.addAttribute("realmName", realmName);
+        model.addAttribute("username", username);
+        model.addAttribute("userRole", userRole);
+        return "console/user-role-edit";
     }
 
-    @DeleteMapping("/{userRoleId}")
-    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String username,
-                                       @PathVariable String userRoleId) {
-        UserRole userRole = userRoleRepository
-                .findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId, realmName, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found"));
+    @PostMapping("/{userRoleId}/update")
+    public String update(@PathVariable String realmName, @PathVariable String username,
+                         @PathVariable String userRoleId,
+                         @RequestParam(required = false) Instant validFrom,
+                         @RequestParam(required = false) Instant validTo,
+                         @RequestParam(required = false) String attributes,
+                         RedirectAttributes redirectAttributes) {
+        UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
+                realmName, username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+
+        userRole.setValidFrom(validFrom);
+        userRole.setValidTo(validTo);
+        userRole.setAttributes(attributes);
+        userRoleRepository.save(userRole);
+
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Updated '" + username + "s' role association");
+        return "redirect:/console/realms/" + realmName + "/user-roles";
+    }
+
+    @PostMapping("/{userRoleId}/delete")
+    public String delete(@PathVariable String realmName, @PathVariable String userRoleId,
+                         @PathVariable String username, RedirectAttributes redirectAttributes) {
+        UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
+                realmName, username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
         userRoleRepository.delete(userRole);
-        return ResponseEntity.noContent().build();
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Deleted role for user '"+username+"'");
+        return "redirect:/console/realms/" + realmName + "/user-roles";
     }
 }
