@@ -9,7 +9,7 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
     <label>Username <input type="text" th:value="${appUser.username}" disabled></label><br>
-    <p style="color:#666; font-size:.85em;">Username is immutable — it's embedded in every token this user has ever been issued.</p>
+    <p style="color:#666; font-size:.85em;">Username is immutable. It's embedded in every token this user has ever been issued.</p>
 
     <label>New password <input type="password" name="password" placeholder="Leave blank to keep unchanged"></label><br>
     <label><input type="checkbox" name="enabled" th:checked="${appUser.enabled}" value="true"> Enabled</label><br>
