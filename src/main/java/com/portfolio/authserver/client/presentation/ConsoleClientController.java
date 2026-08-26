@@ -1,5 +1,6 @@
 package com.portfolio.authserver.client.presentation;
 
+import com.portfolio.authserver.authorization.domain.UserRole;
 import com.portfolio.authserver.client.application.ClientService;
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -76,16 +79,25 @@ public class ConsoleClientController {
         return "redirect:/console/realms/" + realmName + "/clients";
     }
 
-    @PatchMapping("/{clientId}")
-    public ClientResponse update(@PathVariable String realmName, @PathVariable String clientId,
-                                 @RequestBody UpdateClientRequest request) {
-        Realm realm = realmRepository.findByName(realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
+    @GetMapping("/{clientId}/edit")
+    public String editForm(@PathVariable String realmName,
+                           @PathVariable String clientId, Model model) {
+        Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
 
-        RegisteredClient existing = clientService.findByRealmAndClientId(realm, clientId);
-        if (existing == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId);
-        }
+        model.addAttribute("realmName", realmName);
+        model.addAttribute("client", client);
+        return "console/client-edit";
+    }
+
+    @PatchMapping("/{clientId}/update")
+    public String update(@PathVariable String realmName, @PathVariable String clientId,
+                                 RedirectAttributes redirectAttributes) {
+        Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
+
+        client.setRedirectUris(client.getRedirectUris());
+        client.setScopes(); // todo
 
         RegisteredClient.Builder builder = RegisteredClient.from(existing);
 
@@ -107,15 +119,20 @@ public class ConsoleClientController {
         }
 
         clientService.saveForRealm(builder.build(), realm);
-        return clientMapper.toResponse(clientRepository.findByRealmNameAndClientId(realmName, clientId).orElseThrow());
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Updated client '" + clientId + "'");
+        return "redirect:/console/realms/"+realmName+"/clients";
     }
 
-    @DeleteMapping("/{clientId}")
-    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String clientId) {
+    @DeleteMapping("/{clientId}/delete")
+    public String delete(@PathVariable String realmName, @PathVariable String clientId,
+                                       RedirectAttributes redirectAttributes) {
         Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Client not found: " + clientId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId));
+
         clientRepository.delete(client);
-        return ResponseEntity.noContent().build();
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Deleted client '"+clientId+"'");
+        return "redirect:/console/realms/"+realmName+"/clients";
     }
 }
