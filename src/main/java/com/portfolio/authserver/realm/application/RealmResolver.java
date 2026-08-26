@@ -1,4 +1,4 @@
-package com.portfolio.authserver.realm.shared;
+package com.portfolio.authserver.realm.application;
 
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;

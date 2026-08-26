@@ -7,7 +7,7 @@ import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
-import com.portfolio.authserver.realm.shared.RealmResolver;
+import com.portfolio.authserver.realm.application.RealmResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;

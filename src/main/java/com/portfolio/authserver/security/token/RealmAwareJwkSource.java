@@ -5,7 +5,7 @@ import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.shared.RealmResolver;
+import com.portfolio.authserver.realm.application.RealmResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
