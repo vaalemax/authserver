@@ -1,4 +1,4 @@
-package com.portfolio.authserver.security;
+package com.portfolio.authserver.security.token;
 
 import com.nimbusds.jose.KeySourceException;
 import com.nimbusds.jose.jwk.*;

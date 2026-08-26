@@ -1,4 +1,4 @@
-package com.portfolio.authserver.security;
+package com.portfolio.authserver.security.login;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

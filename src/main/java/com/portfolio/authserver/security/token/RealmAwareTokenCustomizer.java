@@ -1,5 +1,6 @@
-package com.portfolio.authserver.security;
+package com.portfolio.authserver.security.token;
 
+import com.portfolio.authserver.security.RealmAwareUserDetails;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;

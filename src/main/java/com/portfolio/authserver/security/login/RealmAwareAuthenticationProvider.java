@@ -1,4 +1,4 @@
-package com.portfolio.authserver.security;
+package com.portfolio.authserver.security.login;
 
 import com.portfolio.authserver.user.application.RealmAwareUserLookupService;
 import lombok.RequiredArgsConstructor;

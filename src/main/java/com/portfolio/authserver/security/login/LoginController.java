@@ -1,4 +1,4 @@
-package com.portfolio.authserver.security;
+package com.portfolio.authserver.security.login;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

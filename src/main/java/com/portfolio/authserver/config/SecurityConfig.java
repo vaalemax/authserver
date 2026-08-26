@@ -3,6 +3,8 @@ package com.portfolio.authserver.config;
 import com.portfolio.authserver.realm.RealmExistenceFilter;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.security.*;
+import com.portfolio.authserver.security.login.*;
+import com.portfolio.authserver.security.token.MasterRealmJwtDecoder;
 import com.portfolio.authserver.user.application.RealmAwareUserLookupService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

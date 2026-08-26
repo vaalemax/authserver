@@ -1,4 +1,4 @@
-package com.portfolio.authserver.security;
+package com.portfolio.authserver.security.token;
 
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
