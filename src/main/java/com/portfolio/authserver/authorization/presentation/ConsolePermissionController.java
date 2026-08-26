@@ -5,13 +5,10 @@ import com.portfolio.authserver.authorization.domain.Permission;
 import com.portfolio.authserver.authorization.domain.PermissionRepository;
 import com.portfolio.authserver.authorization.domain.Role;
 import com.portfolio.authserver.authorization.domain.RoleRepository;
-import com.portfolio.authserver.authorization.presentation.dto.PermissionResponse;
-import com.portfolio.authserver.authorization.presentation.dto.UpdatePermissionRequest;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsolePermissionController {
 
-    private final RealmRepository realmRepository;
     private final PermissionRepository permissionRepository;
+    private final RealmRepository realmRepository;
     private final RoleRepository roleRepository;
-    private final PermissionService permissionService;
 
     @GetMapping
     public String list(@PathVariable String realmName, Model model) {
