@@ -14,16 +14,16 @@ public class RegisteredClientJpaRepository implements RegisteredClientRepository
 
     @Override
     public void save(RegisteredClient registeredClient) {
-        clientService.save(registeredClient);
+        clientService.saveRegisteredClient(registeredClient);
     }
 
     @Override
     public RegisteredClient findById(String id) {
-        return clientService.findById(id);
+        return clientService.findRegisteredClientById(id);
     }
 
     @Override
     public RegisteredClient findByClientId(String clientId) {
-        return clientService.findByClientId(clientId);
+        return clientService.findRegisteredClientByClientId(clientId);
     }
 }

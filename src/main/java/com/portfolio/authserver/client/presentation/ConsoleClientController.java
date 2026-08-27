@@ -1,138 +1,99 @@
 package com.portfolio.authserver.client.presentation;
 
-import com.portfolio.authserver.authorization.domain.UserRole;
 import com.portfolio.authserver.client.application.ClientService;
 import com.portfolio.authserver.client.domain.Client;
-import com.portfolio.authserver.client.domain.ClientRepository;
-import com.portfolio.authserver.client.presentation.dto.ClientResponse;
-import com.portfolio.authserver.client.presentation.dto.UpdateClientRequest;
 import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
-import com.portfolio.authserver.realm.domain.Realm;
-import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.UUID;
+import java.util.NoSuchElementException;
 
 @Controller
 @RequestMapping("/console/realms/{realmName}/clients")
 @RequiredArgsConstructor
 public class ConsoleClientController {
 
-    private final ClientRepository clientRepository;
-    private final RealmRepository realmRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ClientService clientService;
     private final ClientMapper clientMapper;
 
     @GetMapping
-    public String list(@PathVariable String realmName, Model model) {
+    public String listClients(@PathVariable String realmName, Model model) {
         model.addAttribute("realmName", realmName);
-        model.addAttribute("clients", clientRepository.findByRealmName(realmName));
+        model.addAttribute("clients", clientService.listClients(realmName));
         return "console/clients";
     }
 
     @PostMapping
-    public String create(@PathVariable String realmName,
-                         @RequestParam String clientId, @RequestParam String clientSecret,
-                         @RequestParam String redirectUri,
-                         @RequestParam(defaultValue = "openid,profile") String scopes,
-                         RedirectAttributes redirectAttributes) {
-        Realm realm = realmRepository.findByName(realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found"));
-
-        if (clientRepository.findByRealmNameAndClientId(realmName, clientId).isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Already existing client: " + clientId);
-            return "redirect:/console/realms/" + realmName + "/clients";
+    public String createClient(@PathVariable String realmName,
+                               @RequestParam String clientId, @RequestParam String clientSecret,
+                               @RequestParam String redirectUris,
+                               @RequestParam(defaultValue = "openid,profile") String scopes,
+                               @RequestParam(required = false) Boolean requireProofKey,
+                               @RequestParam(required = false) Boolean requireAuthorizationConsent,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            Client client = clientService.createClient(realmName, clientId, clientSecret,
+                    ClientService.splitCommaSeparated(redirectUris), ClientService.splitCommaSeparated(scopes),
+                    requireProofKey != null, requireAuthorizationConsent != null);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Client '" + client.getClientId() + "' created");
+        } catch (NoSuchElementException | IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(clientId)
-                .clientSecret(passwordEncoder.encode(clientSecret))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri(redirectUri)
-                .scopes(s -> s.addAll(Arrays.asList(scopes.split(","))))
-                .clientSettings(ClientSettings.builder().requireProofKey(false)
-                        .requireAuthorizationConsent(false).build())
-                .build();
-
-        clientService.saveForRealm(registeredClient, realm);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Client '" + clientId + "' created");
         return "redirect:/console/realms/" + realmName + "/clients";
     }
 
     @GetMapping("/{clientId}/edit")
-    public String editForm(@PathVariable String realmName,
-                           @PathVariable String clientId, Model model) {
-        Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
+    public String editForm(@PathVariable String realmName, @PathVariable String clientId, Model model) {
+        Client client = clientService.getClient(realmName, clientId);
+        RegisteredClient registeredClient = clientMapper.toRegisteredClient(client);
+
 
         model.addAttribute("realmName", realmName);
         model.addAttribute("client", client);
+        model.addAttribute("redirectUrisJoined", String.join(",", client.getRedirectUris()));
+        model.addAttribute("scopesJoined", String.join(",", client.getScopes()));
+        model.addAttribute("requireProofKey", registeredClient.getClientSettings().isRequireProofKey());
+        model.addAttribute("requireAuthorizationConsent",
+                registeredClient.getClientSettings().isRequireAuthorizationConsent());
         return "console/client-edit";
     }
 
-    @PatchMapping("/{clientId}/update")
+    @PostMapping("/{clientId}/update")
     public String update(@PathVariable String realmName, @PathVariable String clientId,
-                                 RedirectAttributes redirectAttributes) {
-        Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
-
-        client.setRedirectUris(client.getRedirectUris());
-        client.setScopes(); // todo
-
-        RegisteredClient.Builder builder = RegisteredClient.from(existing);
-
-        if (request.redirectUris() != null) {
-            builder.redirectUris(uris -> { uris.clear(); uris.addAll(request.redirectUris()); });
+                         @RequestParam String redirectUris,
+                         @RequestParam String scopes,
+                         @RequestParam(required = false) Boolean requireProofKey,
+                         @RequestParam(required = false) Boolean requireAuthorizationConsent,
+                         @RequestParam(required = false) String newClientSecret,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            clientService.updateClient(realmName, clientId,
+                    ClientService.splitCommaSeparated(redirectUris), ClientService.splitCommaSeparated(scopes),
+                    requireProofKey != null,
+                    requireAuthorizationConsent != null, newClientSecret);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Client '"+clientId+"' updated");
+        } catch (NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        if (request.scopes() != null) {
-            builder.scopes(scopes -> { scopes.clear(); scopes.addAll(request.scopes()); });
-        }
-        if (request.requireProofKey() != null || request.requireAuthorizationConsent() != null) {
-            ClientSettings.Builder settings = ClientSettings.withSettings(existing.getClientSettings().getSettings());
-            if (request.requireProofKey() != null) settings.requireProofKey(request.requireProofKey());
-            if (request.requireAuthorizationConsent() != null)
-                settings.requireAuthorizationConsent(request.requireAuthorizationConsent());
-            builder.clientSettings(settings.build());
-        }
-        if (request.newClientSecret() != null && !request.newClientSecret().isBlank()) {
-            builder.clientSecret(passwordEncoder.encode(request.newClientSecret()));
-        }
-
-        clientService.saveForRealm(builder.build(), realm);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Updated client '" + clientId + "'");
-        return "redirect:/console/realms/"+realmName+"/clients";
+        return "redirect:/console/realms/" + realmName + "/clients";
     }
 
-    @DeleteMapping("/{clientId}/delete")
-    public String delete(@PathVariable String realmName, @PathVariable String clientId,
+    @PostMapping("/{clientId}/delete")
+    public String deleteClient(@PathVariable String realmName, @PathVariable String clientId,
                                        RedirectAttributes redirectAttributes) {
-        Client client = clientRepository.findByRealmNameAndClientId(realmName, clientId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found: " + clientId));
-
-        clientRepository.delete(client);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Deleted client '"+clientId+"'");
+        try{
+            clientService.deleteClient(realmName, clientId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Deleted client '"+clientId+"'");
+        }catch (NoSuchElementException ex){
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
         return "redirect:/console/realms/"+realmName+"/clients";
     }
 }

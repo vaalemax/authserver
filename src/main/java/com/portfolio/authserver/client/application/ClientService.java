@@ -1,133 +1,116 @@
 package com.portfolio.authserver.client.application;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portfolio.authserver.client.infrastructure.RegisteredClientJpaRepository;
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
+import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.realm.application.RealmResolver;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.jackson2.SecurityJackson2Modules;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
-import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class ClientService {
 
     private final ClientRepository clientRepository;
     private final RealmRepository realmRepository;
+    private final PasswordEncoder passwordEncoder;
     private final RealmResolver realmResolver;
-    private final ObjectMapper objectMapper;
+    private final ClientMapper clientMapper;
 
-    public ClientService(RealmRepository realmRepository,
-                         ClientRepository clientRepository, RealmResolver realmResolver){
-        this.realmRepository = realmRepository;
-        this.clientRepository   =   clientRepository;
-        this.realmResolver      =      realmResolver;
-
-        this.objectMapper = new ObjectMapper();
-        ClassLoader classLoader = RegisteredClientJpaRepository.class.getClassLoader();
-        this.objectMapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
-        this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
+    public List<Client> listClients(String realmName){
+        return clientRepository.findByRealmName(realmName);
     }
 
-    public Realm findRealmByName(String realmName) {
-        return realmRepository.findByName(realmName)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + realmName));
+    public Client getClient(String realmName, String clientId) {
+        return clientRepository.findByRealmNameAndClientId(realmName, clientId)
+                .orElseThrow(() -> new NoSuchElementException("Client not found: " + clientId));
     }
 
-    public void save(RegisteredClient registeredClient) {
-        clientRepository.save(this.toEntity(registeredClient, realmResolver.resolveCurrentRealm()));
+    public Client createClient(String realmName, String clientId, String clientSecret, Set<String> redirectUris,
+                               Set<String> scopes, boolean requireProofKey, boolean requireAuthorizationConsent){
+        Realm realm = realmRepository.findByName(realmName)
+                .orElseThrow(() -> new NoSuchElementException("Realm not found: "+realmName));
+
+        if (clientRepository.findByRealmNameAndClientId(realmName, clientId).isPresent()) {
+            throw new IllegalStateException("Already existing client: "+clientId);
+        }
+
+        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId(clientId)
+                .clientSecret(passwordEncoder.encode(clientSecret))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUris(uris -> uris.addAll(redirectUris))
+                .scopes(s -> s.addAll(scopes))
+                .clientSettings(ClientSettings.builder()
+                        .requireProofKey(requireProofKey)
+                        .requireAuthorizationConsent(requireAuthorizationConsent)
+                        .build())
+                .build();
+
+        return clientRepository.save(clientMapper.toEntity(registeredClient, realm));
+    }
+
+    public Client updateClient(String realmName, String clientId, Set<String> redirectUris, Set<String> scopes,
+                               boolean requireProofKey, boolean requireAuthorizationConsent, String newClientSecret) {
+        Client existingEntity = getClient(realmName, clientId);
+        RegisteredClient existing = clientMapper.toRegisteredClient(existingEntity);
+
+        RegisteredClient.Builder builder = RegisteredClient.from(existing)
+                .redirectUris(uris -> { uris.clear(); uris.addAll(redirectUris); })
+                .scopes(s -> { s.clear(); s.addAll(scopes); })
+                .clientSettings(ClientSettings.builder()
+                        .requireProofKey(requireProofKey)
+                        .requireAuthorizationConsent(requireAuthorizationConsent)
+                        .build());
+
+        if (newClientSecret != null && !newClientSecret.isBlank()) {
+            builder.clientSecret(passwordEncoder.encode(newClientSecret));
+        }
+
+        Realm realm = realmRepository.findByName(realmName)
+                .orElseThrow(() -> new NoSuchElementException("Realm not found: " + realmName));
+
+        return clientRepository.save(clientMapper.toEntity(builder.build(), realm));
+    }
+
+    public void deleteClient(String realmName, String clientId){
+        Client client = getClient(realmName, clientId);
+
+        clientRepository.delete(client);
     }
 
     public void saveForRealm(RegisteredClient registeredClient, Realm realm) {
-        clientRepository.save(this.toEntity(registeredClient, realm));
+        clientRepository.save(clientMapper.toEntity(registeredClient, realm));
     }
 
-    public RegisteredClient findById(String id) {
-        return clientRepository.findById(id).map(this::toRegisteredClient).orElse(null);
+    public static Set<String> splitCommaSeparated(String value) {
+        if (value == null || value.isBlank()) return Set.of();
+        return Set.of(value.split("\\s*,\\s*"));
     }
 
-    public RegisteredClient findByClientId(String clientId) {
+
+    public void saveRegisteredClient(RegisteredClient registeredClient) {
+        clientRepository.save(clientMapper.toEntity(registeredClient, realmResolver.resolveCurrentRealm()));
+    }
+
+    public RegisteredClient findRegisteredClientById(String id) {
+        return clientRepository.findById(id).map(clientMapper::toRegisteredClient).orElse(null);
+    }
+
+    public RegisteredClient findRegisteredClientByClientId(String clientId) {
         String realmName = realmResolver.resolveCurrentRealm().getName();
         return clientRepository.findByRealmNameAndClientId(realmName, clientId)
-                .map(this::toRegisteredClient).orElse(null);
-    }
-
-    public RegisteredClient findByRealmAndClientId(Realm realm, String clientId) {
-        return clientRepository.findByRealmNameAndClientId(realm.getName(), clientId)
-                .map(this::toRegisteredClient)
-                .orElse(null);
-    }
-
-    public Client toEntity(RegisteredClient rc, Realm realm) {
-        Client entity = new Client();
-        entity.setId(rc.getId());
-        entity.setRealm(realm);
-        entity.setClientId(rc.getClientId());
-        entity.setClientIdIssuedAt(rc.getClientIdIssuedAt());
-        entity.setClientSecret(rc.getClientSecret());
-        entity.setClientSecretExpiresAt(rc.getClientSecretExpiresAt());
-        entity.setClientName(rc.getClientName());
-        entity.setClientAuthenticationMethods(rc.getClientAuthenticationMethods().stream()
-                .map(ClientAuthenticationMethod::getValue).collect(Collectors.toSet()));
-        entity.setAuthorizationGrantTypes(rc.getAuthorizationGrantTypes().stream()
-                .map(AuthorizationGrantType::getValue).collect(Collectors.toSet()));
-        entity.setRedirectUris(new HashSet<>(rc.getRedirectUris()));
-        entity.setScopes(new HashSet<>(rc.getScopes()));
-        entity.setClientSettings(writeMap(rc.getClientSettings().getSettings()));
-        entity.setTokenSettings(writeMap(rc.getTokenSettings().getSettings()));
-        return entity;
-    }
-
-    public RegisteredClient toRegisteredClient(Client entity) {
-        Set<ClientAuthenticationMethod> authMethods = entity.getClientAuthenticationMethods().stream()
-                .map(ClientAuthenticationMethod::new).collect(Collectors.toSet());
-        Set<AuthorizationGrantType> grantTypes = entity.getAuthorizationGrantTypes().stream()
-                .map(AuthorizationGrantType::new).collect(Collectors.toSet());
-
-        return RegisteredClient.withId(entity.getId())
-                .clientId(entity.getClientId())
-                .clientIdIssuedAt(entity.getClientIdIssuedAt())
-                .clientSecret(entity.getClientSecret())
-                .clientSecretExpiresAt(entity.getClientSecretExpiresAt())
-                .clientName(entity.getClientName())
-                .clientAuthenticationMethods(methods -> methods.addAll(authMethods))
-                .authorizationGrantTypes(grants -> grants.addAll(grantTypes))
-                .redirectUris(uris -> uris.addAll(entity.getRedirectUris()))
-                .scopes(scopes -> scopes.addAll(entity.getScopes()))
-                .clientSettings(ClientSettings.withSettings(readMap(entity.getClientSettings())).build())
-                .tokenSettings(TokenSettings.withSettings(readMap(entity.getTokenSettings())).build())
-                .build();
-    }
-
-    public String writeMap(Map<String, Object> map) {
-        try {
-            return objectMapper.writeValueAsString(map);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Cannot serialize client settings", ex);
-        }
-    }
-
-    public Map<String, Object> readMap(String json) {
-        try {
-            return objectMapper.readValue(json, new TypeReference<>() {});
-        } catch (Exception ex) {
-            throw new IllegalStateException("Cannot deserialize client settings", ex);
-        }
+                .map(clientMapper::toRegisteredClient).orElse(null);
     }
 }

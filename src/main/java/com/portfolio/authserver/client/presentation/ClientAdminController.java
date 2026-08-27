@@ -1,67 +1,71 @@
 package com.portfolio.authserver.client.presentation;
 
 import com.portfolio.authserver.client.application.ClientService;
-import com.portfolio.authserver.client.domain.ClientRepository;
+import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.presentation.dto.ClientResponse;
 import com.portfolio.authserver.client.presentation.dto.CreateClientRequest;
+import com.portfolio.authserver.client.presentation.dto.UpdateClientRequest;
 import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
-import com.portfolio.authserver.realm.domain.Realm;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/admin/realms/{realmName}/clients")
 @RequiredArgsConstructor
 public class ClientAdminController {
 
-    private final ClientRepository clientRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ClientService clientService;
     private final ClientMapper clientMapper;
 
     @GetMapping
     public List<ClientResponse> findClients(@PathVariable String realmName) {
-        return clientRepository.findByRealmName(realmName).stream().map(clientMapper::toResponse).toList();
+        return clientService.listClients(realmName).stream().map(clientMapper::toResponse).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ClientResponse createClient(@PathVariable String realmName, @Valid @RequestBody CreateClientRequest request) {
-        Realm realm = clientService.findRealmByName(realmName);
-
-        if (clientRepository.findByRealmNameAndClientId(realmName, request.clientId()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Client already existing in this realm: " + request.clientId());
+    public ClientResponse createClient(@PathVariable String realmName,
+                                       @Valid @RequestBody CreateClientRequest request) {
+        try {
+            Client created = clientService.createClient(realmName, request.clientId(), request.clientSecret(),
+                    request.redirectUris(), request.scopes(),
+                    request.requireProofKey(), request.requireAuthorizationConsent());
+            return clientMapper.toResponse(created);
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
+    }
 
-        RegisteredClient.Builder builder = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(request.clientId())
-                .clientSecret(passwordEncoder.encode(request.clientSecret()))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .clientSettings(ClientSettings.builder()
-                        .requireProofKey(request.requireProofKey())
-                        .requireAuthorizationConsent(request.requireAuthorizationConsent())
-                        .build());
+    @PatchMapping("/{clientId}")
+    public ClientResponse update(@PathVariable String realmName, @PathVariable String clientId,
+                                 @RequestBody UpdateClientRequest request) {
+        try {
+            Client updated = clientService.updateClient(realmName, clientId, request.redirectUris(),
+                    request.scopes(), Boolean.TRUE.equals(request.requireProofKey()),
+                    Boolean.TRUE.equals(request.requireAuthorizationConsent()), request.newClientSecret());
+            return clientMapper.toResponse(updated);
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+    }
 
-        request.redirectUris().forEach(builder::redirectUri);
-        request.scopes().forEach(builder::scope);
-
-        clientService.saveForRealm(builder.build(), realm);
-
-        return clientMapper.toResponse(clientRepository.findByRealmNameAndClientId(realmName, request.clientId())
-                .orElseThrow());
+    @DeleteMapping
+    @RequestMapping("/{clientId}")
+    public ResponseEntity<Void> deleteClient(@PathVariable String realmName, @PathVariable String clientId){
+        try{
+            clientService.deleteClient(realmName, clientId);
+            return ResponseEntity.noContent().build();
+        }catch(NoSuchElementException ex){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 }
