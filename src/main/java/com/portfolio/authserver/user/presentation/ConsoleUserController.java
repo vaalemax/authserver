@@ -1,5 +1,6 @@
 package com.portfolio.authserver.user.presentation;
 
+import com.portfolio.authserver.client.application.ClientService;
 import com.portfolio.authserver.user.application.UserService;
 import com.portfolio.authserver.user.domain.AppUser;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,8 @@ public class ConsoleUserController {
                          @RequestParam String password, @RequestParam(required = false) String roles,
                          RedirectAttributes redirectAttributes) {
         try{
-            AppUser user = userService.createUser(realmName, username, password, roles);
+            AppUser user = userService.createUser(realmName, username,
+                    password, UserService.splitCommaSeparated(roles));
             redirectAttributes.addFlashAttribute(
                     "successMessage", "User '"+user.getUsername()+"' created");
         }catch(NoSuchElementException | IllegalArgumentException ex){

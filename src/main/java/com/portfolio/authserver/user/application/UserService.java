@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +27,7 @@ public class UserService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: "+username));
     }
 
-    public AppUser createUser(String realmName, String username, String password, String roles){
+    public AppUser createUser(String realmName, String username, String password, Set<String> roles){
         Realm realm = realmRepository.findByName(realmName)
                 .orElseThrow(() -> new NoSuchElementException("Realm not found: "+realmName));
 
@@ -42,9 +41,7 @@ public class UserService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setEnabled(true);
-        user.setRoles(roles != null && !roles.isBlank()
-                ? Arrays.stream(roles.split(",")).map(String::trim).collect(Collectors.toSet())
-                : Set.of());
+        user.setRoles(roles);
 
         appUserRepository.save(user);
         return user;
@@ -68,5 +65,10 @@ public class UserService {
         appUser.setEnabled(false);
 
         appUserRepository.save(appUser);
+    }
+
+    public static Set<String> splitCommaSeparated(String value) {
+        if (value == null || value.isBlank()) return Set.of();
+        return Set.of(value.split("\\s*,\\s*"));
     }
 }
