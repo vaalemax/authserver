@@ -1,38 +1,31 @@
 package com.portfolio.authserver.authorization.presentation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.authserver.authorization.application.UserRoleService;
 import com.portfolio.authserver.authorization.domain.*;
-import com.portfolio.authserver.user.domain.AppUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.UUID;
+import java.util.NoSuchElementException;
 
 @Controller
 @RequestMapping("/console/realms/{realmName}/users/{username}/roles")
 @RequiredArgsConstructor
 public class ConsoleUserRoleController {
 
-    private final UserRoleRepository userRoleRepository;
     private final UserRoleService userRoleService;
     private final RoleRepository roleRepository;
-    private final ObjectMapper objectMapper;
 
     @GetMapping
     public String list(@PathVariable String realmName, @PathVariable String username, Model model) {
-        AppUser user = userRoleService.findUserOrThrow(realmName, username);
         model.addAttribute("realmName", realmName);
         model.addAttribute("username", username);
-        model.addAttribute("assignments", userRoleRepository.findByAppUser(user));
+        model.addAttribute("assignments", userRoleService.listAssignments(realmName, username));
         model.addAttribute("availableRoles", roleRepository.findByRealmName(realmName));
         return "console/user-roles";
     }
@@ -40,57 +33,31 @@ public class ConsoleUserRoleController {
     @PostMapping
     public String create(@PathVariable String realmName, @PathVariable String username,
                          @RequestParam String roleId,
-                         @RequestParam(required = false)
-                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validFrom,
+                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validFrom,
                          @RequestParam(required = false)
                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validTo,
-                         @RequestParam(required = false) String attributesJson,
+                         @RequestParam String attributes,
                          RedirectAttributes redirectAttributes) {
-        AppUser user = userRoleService.findUserOrThrow(realmName, username);
-
-        Role role = roleRepository.findByIdAndRealmName(roleId, realmName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
-
-        if (validTo != null && !validTo.isAfter(validFrom)) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "\"Valid to\" must be after \"valid from\".");
-            return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
-        }
-
         try {
-            objectMapper.readTree(attributesJson);
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Invalid JSON attributes: " + ex.getMessage());
-            return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
+            userRoleService.createAssignment(realmName, username, roleId, userRoleService.toInstant(validFrom),
+                    userRoleService.toInstant(validTo), attributes);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Assigned role to '" + username + "'");
+        } catch (NoSuchElementException | IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-
-        UserRole userRole = new UserRole();
-        userRole.setId(UUID.randomUUID().toString());
-        userRole.setAppUser(user);
-        userRole.setRole(role);
-        userRole.setValidFrom(validFrom.atZone(ZoneId.systemDefault()).toInstant());
-        userRole.setValidTo(validTo != null ? validTo.atZone(ZoneId.systemDefault()).toInstant() : null);
-        userRole.setAttributes(attributesJson);
-
-        userRoleRepository.save(userRole);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Assigned role '"+role.getName()+"' to "+username+"'");
-        return "redirect:/console/realms/"+realmName+"/users/"+username+"/roles";
+        return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
     }
 
     @GetMapping("/{userRoleId}/edit")
     public String editForm(@PathVariable String realmName, @PathVariable String username,
                            @PathVariable String userRoleId, Model model) {
-        UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
-                        realmName, username).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
-
+        UserRole userRole = userRoleService.getAssignment(realmName, username, userRoleId);
         model.addAttribute("realmName", realmName);
         model.addAttribute("username", username);
         model.addAttribute("userRole", userRole);
-        model.addAttribute("validFromLocal", LocalDateTime.ofInstant(
-                userRole.getValidFrom(), ZoneId.systemDefault()));
+        model.addAttribute("validFromLocal",
+                LocalDateTime.ofInstant(userRole.getValidFrom(),ZoneId.systemDefault()));
         model.addAttribute("validToLocal", userRole.getValidTo() != null
                 ? LocalDateTime.ofInstant(userRole.getValidTo(), ZoneId.systemDefault()) : null);
         return "console/user-role-edit";
@@ -100,40 +67,31 @@ public class ConsoleUserRoleController {
     public String update(@PathVariable String realmName, @PathVariable String username,
                          @PathVariable String userRoleId,
                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validFrom,
-                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                             LocalDateTime validTo,
+                         @RequestParam(required = false)
+                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validTo,
                          @RequestParam String attributes,
                          RedirectAttributes redirectAttributes) {
-        UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
-                realmName, username).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
-
-        if (validTo != null && !validTo.isAfter(validFrom)) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "\"Valid to\" must be after \"valid from\".");
-            return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
+        try {
+            userRoleService.updateAssignment(realmName, username, userRoleId, userRoleService.toInstant(validFrom),
+                    userRoleService.toInstant(validTo), attributes);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Updated role assignment for '" + username + "'");
+        } catch (NoSuchElementException | IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-
-        userRole.setValidFrom(validFrom.atZone(ZoneId.systemDefault()).toInstant());
-        userRole.setValidTo(validTo != null ? validTo.atZone(ZoneId.systemDefault()).toInstant() : null);
-        userRole.setAttributes(attributes);
-        userRoleRepository.save(userRole);
-
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Updated role assignment for '" + username + "'");
-        return "redirect:/console/realms/"+realmName+"/users/"+username+"/roles";
+        return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
     }
 
     @PostMapping("/{userRoleId}/delete")
-    public String delete(@PathVariable String realmName, @PathVariable String userRoleId,
-                         @PathVariable String username, RedirectAttributes redirectAttributes) {
-        UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
-                realmName, username).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
-
-        userRoleRepository.delete(userRole);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Deleted role assignment for user '"+username+"'");
-        return "redirect:/console/realms/"+realmName+"/users/"+username+"/roles";
+    public String delete(@PathVariable String realmName, @PathVariable String username,
+                         @PathVariable String userRoleId, RedirectAttributes redirectAttributes) {
+        try {
+            userRoleService.deleteAssignment(realmName, username, userRoleId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Deleted role assignment for '" + username + "'");
+        } catch (NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
     }
 }
