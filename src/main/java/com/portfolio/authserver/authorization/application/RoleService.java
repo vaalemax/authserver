@@ -21,6 +21,11 @@ public class RoleService {
     private final RealmRepository realmRepository;
     private final RoleRepository roleRepository;
 
+    public Role getRole(String realmName, String roleId) {
+        return roleRepository.findByIdAndRealmName(roleId, realmName)
+                .orElseThrow(() -> new NoSuchElementException("Role not found"));
+    }
+
     public List<Role> listRoles(String realmName) {
         return roleRepository.findByRealmName(realmName);
     }

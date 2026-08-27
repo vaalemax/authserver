@@ -21,12 +21,11 @@ import java.util.*;
 public class RoleAdminController {
 
     private final AuthorizationMapper authorizationMapper;
-    private final RoleRepository roleRepository;
     private final RoleService roleService;
 
     @GetMapping
     public List<RoleResponse> findRoles(@PathVariable String realmName) {
-        return roleRepository.findByRealmName(realmName).stream().map(authorizationMapper::toResponse).toList();
+        return roleService.listRoles(realmName).stream().map(authorizationMapper::toResponse).toList();
     }
 
     @PostMapping
@@ -43,7 +42,7 @@ public class RoleAdminController {
     }
 
     @PatchMapping("/{roleId}")
-    public RoleResponse update(@PathVariable String realmName, @PathVariable String roleId,
+    public RoleResponse updateRole(@PathVariable String realmName, @PathVariable String roleId,
                                @RequestBody UpdateRoleRequest request) {
         try {
             return authorizationMapper.toResponse(
@@ -56,7 +55,7 @@ public class RoleAdminController {
     }
 
     @DeleteMapping("/{roleId}")
-    public ResponseEntity<Void> delete(@PathVariable String realmName, @PathVariable String roleId) {
+    public ResponseEntity<Void> deleteRole(@PathVariable String realmName, @PathVariable String roleId) {
         try {
             roleService.deleteRole(realmName, roleId);
             return ResponseEntity.noContent().build();
