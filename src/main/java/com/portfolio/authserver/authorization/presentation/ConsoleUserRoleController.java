@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
@@ -47,8 +46,7 @@ public class ConsoleUserRoleController {
                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validTo,
                          @RequestParam(required = false) String attributesJson,
                          RedirectAttributes redirectAttributes) {
-        AppUser user = userRoleService.findByRealmNameAndUsername(realmName, username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        AppUser user = userRoleService.findUserOrThrow(realmName, username);
 
         Role role = roleRepository.findByIdAndRealmName(roleId, realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
