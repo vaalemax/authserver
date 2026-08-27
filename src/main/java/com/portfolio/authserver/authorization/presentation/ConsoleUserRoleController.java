@@ -47,36 +47,38 @@ public class ConsoleUserRoleController {
                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime validTo,
                          @RequestParam(required = false) String attributesJson,
                          RedirectAttributes redirectAttributes) {
-        AppUser user = userRoleService.findUserOrThrow(realmName, username);
+        AppUser user = userRoleService.findByRealmNameAndUsername(realmName, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         Role role = roleRepository.findByIdAndRealmName(roleId, realmName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not found"));
 
-        String normalizedAttributes = "[]";
-        if (attributesJson != null && !attributesJson.isBlank()) {
-            try {
-                objectMapper.readTree(attributesJson);
-                normalizedAttributes = attributesJson;
-            } catch (Exception ex) {
-                redirectAttributes.addFlashAttribute("errorMessage",
-                        "Invalid JSON attributes: " + ex.getMessage());
-                return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
-            }
+        if (validTo != null && !validTo.isAfter(validFrom)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "\"Valid to\" must be after \"valid from\".");
+            return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
+        }
+
+        try {
+            objectMapper.readTree(attributesJson);
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Invalid JSON attributes: " + ex.getMessage());
+            return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
         }
 
         UserRole userRole = new UserRole();
         userRole.setId(UUID.randomUUID().toString());
         userRole.setAppUser(user);
         userRole.setRole(role);
-        userRole.setValidFrom(validFrom != null ? validFrom.atZone(
-                ZoneId.systemDefault()).toInstant() : Instant.now());
+        userRole.setValidFrom(validFrom.atZone(ZoneId.systemDefault()).toInstant());
         userRole.setValidTo(validTo != null ? validTo.atZone(ZoneId.systemDefault()).toInstant() : null);
-        userRole.setAttributes(normalizedAttributes);
+        userRole.setAttributes(attributesJson);
 
         userRoleRepository.save(userRole);
         redirectAttributes.addFlashAttribute("successMessage",
-                "Role '" + role.getName() + "' assigned to " + username);
-        return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
+                "Assigned role '"+role.getName()+"' to "+username+"'");
+        return "redirect:/console/realms/"+realmName+"/users/"+username+"/roles";
     }
 
     @GetMapping("/{userRoleId}/edit")
@@ -107,6 +109,12 @@ public class ConsoleUserRoleController {
         UserRole userRole = userRoleRepository.findByIdAndAppUserRealmNameAndAppUserUsername(userRoleId,
                 realmName, username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+
+        if (validTo != null && !validTo.isAfter(validFrom)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "\"Valid to\" must be after \"valid from\".");
+            return "redirect:/console/realms/" + realmName + "/users/" + username + "/roles";
+        }
 
         userRole.setValidFrom(validFrom.atZone(ZoneId.systemDefault()).toInstant());
         userRole.setValidTo(validTo != null ? validTo.atZone(ZoneId.systemDefault()).toInstant() : null);

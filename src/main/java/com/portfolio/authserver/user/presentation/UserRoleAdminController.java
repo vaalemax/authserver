@@ -24,10 +24,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserRoleAdminController {
 
-    private final RoleRepository roleRepository;
+    private final AuthorizationMapper authorizationMapper;
     private final UserRoleRepository userRoleRepository;
     private final UserRoleService userRoleService;
-    private final AuthorizationMapper authorizationMapper;
+    private final RoleRepository roleRepository;
 
     @GetMapping
     public List<UserRoleResponse> findUserRoles(@PathVariable String realmName, @PathVariable String username) {
