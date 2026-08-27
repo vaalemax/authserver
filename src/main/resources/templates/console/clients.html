@@ -14,10 +14,10 @@
         <td th:text="${client.redirectUris}"></td>
         <td th:text="${client.scopes}"></td>
         <td>
-            <a th:href="@{/console/realms/{name}/users/{user}/roles/{id}/edit(name=${realmName},user=${username},id=${a.id})}">Edit</a>
-            <form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/delete(name=${realmName},user=${username},id=${a.id})}" method="post" style="display:inline">
+            <a th:href="@{/console/realms/{name}/clients/{id}/edit(name=${realmName},id=${client.clientId})}">Edit</a>
+            <form th:action="@{/console/realms/{name}/clients/{id}/delete(name=${realmName},id=${client.clientId})}" method="post" style="display:inline">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button type="submit" onclick="return confirm('Delete this assignment?')">Delete</button>
+                <button type="submit" onclick="return confirm('Delete this client?')">Delete</button>
             </form>
         </td>
     </tr>
@@ -28,8 +28,10 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     <label>Client ID <input type="text" name="clientId" required></label><br>
     <label>Client Secret <input type="text" name="clientSecret" required></label><br>
-    <label>Redirect URI <input type="text" name="redirectUri" required></label><br>
-    <label>Scope (comma) <input type="text" name="scopes" value="openid,profile"></label><br>
+    <label>Redirect URIs (comma-separated) <input type="text" name="redirectUris" required></label><br>
+    <label>Scopes (comma-separated) <input type="text" name="scopes" value="openid,profile"></label><br>
+    <label><input type="checkbox" name="requireProofKey"> Require PKCE</label><br>
+    <label><input type="checkbox" name="requireAuthorizationConsent"> Require consent</label><br>
     <button type="submit">Create</button>
 </form>
 </body>
