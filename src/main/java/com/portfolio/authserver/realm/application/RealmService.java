@@ -4,7 +4,9 @@ import com.portfolio.authserver.crypto.RsaKeyGenerator;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.KeyPair;
 import java.util.Base64;
@@ -16,6 +18,11 @@ import java.util.UUID;
 public class RealmService {
 
     private final RealmRepository realmRepository;
+
+    public Realm getRealm(String name) {
+        return realmRepository.findByName(name)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Realm not found: " + name));
+    }
 
     public Realm createRealm(String name, String displayName) {
         if (realmRepository.findByName(name).isPresent()) {
@@ -32,10 +39,6 @@ public class RealmService {
         realm.setRsaPublicKey(Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
         realm.setRsaPrivateKey(Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
         return realmRepository.save(realm);
-    }
-
-    public Realm getOrCreateRealm(String name, String displayName) {
-        return realmRepository.findByName(name).orElseGet(() -> createRealm(name, displayName));
     }
 
     public List<Realm> listRealms() {

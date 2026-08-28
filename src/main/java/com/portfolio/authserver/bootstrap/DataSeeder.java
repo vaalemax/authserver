@@ -58,7 +58,9 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private void seedMasterRealmAndAdminClient() {
-        Realm master = realmService.getOrCreateRealm(MASTER_REALM, "Master");
+        Realm master = realmService.getRealm(MASTER_REALM);
+        if(master == null)
+            master = realmService.createRealm(MASTER_REALM, "Master");
         seedAdminCliClient(master);
         seedConsoleUser(master);
         seedConsoleClient(master);
@@ -111,7 +113,10 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private Realm seedRealm() {
-        return realmService.getOrCreateRealm(DEFAULT_REALM, "Aether");
+        Realm master = realmService.getRealm(MASTER_REALM);
+        if(master == null)
+            master = realmService.createRealm(MASTER_REALM, "Master");
+        return master;
     }
 
     private void seedUser(Realm realm) {
