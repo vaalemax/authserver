@@ -1,6 +1,5 @@
 package com.portfolio.authserver.user.presentation;
 
-import com.portfolio.authserver.client.application.ClientService;
 import com.portfolio.authserver.user.application.UserService;
 import com.portfolio.authserver.user.domain.AppUser;
 import lombok.RequiredArgsConstructor;
