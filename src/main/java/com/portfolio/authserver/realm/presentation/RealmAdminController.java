@@ -8,7 +8,6 @@ import com.portfolio.authserver.realm.presentation.mapper.RealmMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -44,18 +43,6 @@ public class RealmAdminController {
             return realmMapper.toResponse(realmService.updateRealm(realmName, request.displayName(), request.enabled()));
         }catch(NoSuchElementException ex){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{realmName}")
-    public ResponseEntity<Void> deleteRealm(@PathVariable String realmName) {
-        try{
-            realmService.deleteRealm(realmName);
-            return ResponseEntity.noContent().build();
-        }catch(NoSuchElementException ex){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
-        }catch(ResponseStatusException ex){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
     }
 }
