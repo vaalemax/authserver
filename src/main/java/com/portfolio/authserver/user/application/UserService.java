@@ -52,16 +52,15 @@ public class UserService {
 
         if (password != null && !password.isBlank())
             appUser.setPassword(passwordEncoder.encode(password));
-
-        appUser.setEnabled(enabled != null && enabled);
+        if(enabled != null && enabled && !appUser.isEnabled())
+            appUser.setEnabled(true);
 
         appUserRepository.save(appUser);
         return appUser;
     }
 
-    public void deleteUser(String realmName, String username){
+    public void disableUser(String realmName, String username){
         AppUser appUser = this.getUser(realmName, username);
-
         appUser.setEnabled(false);
 
         appUserRepository.save(appUser);

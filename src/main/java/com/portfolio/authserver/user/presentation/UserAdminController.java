@@ -41,23 +41,21 @@ public class UserAdminController {
         }
     }
 
-    @PatchMapping("/{username}/update")
+    @PatchMapping("/{username}")
     public UserResponse updateUser(@PathVariable String realmName, @PathVariable String username,
-                             @Valid @RequestBody UpdateUserRequest request){
+                                   @RequestBody UpdateUserRequest request){
         try{
             return userMapper.toResponse(userService.updateUser(realmName, username,
                     request.password(), request.enabled()));
         } catch (NoSuchElementException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
     }
 
-    @DeleteMapping("/{username}/delete")
-    public ResponseEntity<Void> deleteUser(@PathVariable String realmName, @PathVariable String username){
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> disableUser(@PathVariable String realmName, @PathVariable String username){
         try {
-            userService.deleteUser(realmName, username);
+            userService.disableUser(realmName, username);
             return ResponseEntity.noContent().build();
         } catch (NoSuchElementException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());

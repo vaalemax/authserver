@@ -52,7 +52,8 @@ public class ConsoleUserController {
                          @RequestParam(required = false) Boolean enabled,
                          RedirectAttributes redirectAttributes) {
         try{
-            AppUser user = userService.updateUser(realmName, username, password, enabled);
+            AppUser user = userService.updateUser(realmName, username,
+                    (password != null && !password.isBlank()) ? password : null, enabled);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Updated '"+user.getUsername()+"'");
         }catch(NoSuchElementException ex){
@@ -61,11 +62,11 @@ public class ConsoleUserController {
         return "redirect:/console/realms/" + realmName + "/users";
     }
 
-    @PostMapping("/{username}/delete")
-    public String deleteUser(@PathVariable String realmName, @PathVariable String username,
+    @PostMapping("/{username}/disable")
+    public String disableUser(@PathVariable String realmName, @PathVariable String username,
                          RedirectAttributes redirectAttributes) {
         try{
-            userService.deleteUser(realmName, username);
+            userService.disableUser(realmName, username);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Disabled user '"+username+"'");
         }catch(NoSuchElementException ex){

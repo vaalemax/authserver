@@ -16,9 +16,13 @@
         <td><a th:href="@{/console/realms/{r}/users/{u}/roles(r=${realmName},u=${user.username})}">ABAC roles</a></td>
         <td>
             <a th:href="@{/console/realms/{name}/users/{user}/edit(name=${realmName},user=${user.username})}">Edit</a>
-            <form th:action="@{/console/realms/{name}/users/{user}/delete(name=${realmName},user=${user.username})}" method="post" style="display:inline">
+            <form th:if="${user.enabled}" th:action="@{/console/realms/{name}/users/{user}/disable(name=${realmName},user=${user.username})}" method="post" style="display:inline">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button type="submit" onclick="return confirm('Delete this user?')">Delete</button>
+                <button type="submit" onclick="return confirm('Disable this user?')">Disable</button>
+            </form>
+            <form th:unless="${user.enabled}" th:action="@{/console/realms/{name}/users/{user}/enable(name=${realmName},user=${user.username})}" method="post" style="display:inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit">Enable</button>
             </form>
         </td>
     </tr>
