@@ -3,7 +3,7 @@ package com.portfolio.authserver.user.application;
 import com.portfolio.authserver.realm.domain.Realm;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.user.domain.AppUser;
-import com.portfolio.authserver.user.infrastructure.JpaAppUserRepository;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final JpaAppUserRepository appUserRepository;
+    private final AppUserRepository appUserRepository;
     private final RealmRepository realmRepository;
     private final PasswordEncoder passwordEncoder;
 
