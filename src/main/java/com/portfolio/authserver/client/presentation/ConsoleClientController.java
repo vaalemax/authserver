@@ -31,7 +31,7 @@ public class ConsoleClientController {
     public String createClient(@PathVariable String realmName,
                                @RequestParam String clientId, @RequestParam String clientSecret,
                                @RequestParam String redirectUris,
-                               @RequestParam(defaultValue = "openid,profile") String scopes,
+                               @RequestParam(defaultValue = "openid,profile,offline_access") String scopes,
                                @RequestParam(required = false) Boolean requireProofKey,
                                @RequestParam(required = false) Boolean requireAuthorizationConsent,
                                RedirectAttributes redirectAttributes) {
