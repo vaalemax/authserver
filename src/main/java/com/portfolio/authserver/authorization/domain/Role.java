@@ -25,6 +25,9 @@ public class Role {
     private String name;
     private Integer level;
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_permission",
             joinColumns = @JoinColumn(name = "role_id"),

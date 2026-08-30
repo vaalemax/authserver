@@ -1,7 +1,6 @@
 package com.portfolio.authserver.authorization.presentation;
 
 import com.portfolio.authserver.authorization.application.RoleService;
-import com.portfolio.authserver.authorization.domain.*;
 import com.portfolio.authserver.authorization.presentation.dto.CreateRoleRequest;
 import com.portfolio.authserver.authorization.presentation.dto.RoleResponse;
 import com.portfolio.authserver.authorization.presentation.dto.UpdateRoleRequest;
@@ -63,6 +62,15 @@ public class RoleAdminController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         } catch (IllegalStateException ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
+        }
+    }
+
+    @PatchMapping("/{roleId}/toggle-enabled")
+    public RoleResponse toggleEnabled(@PathVariable String realmName, @PathVariable String roleId) {
+        try {
+            return authorizationMapper.toResponse(roleService.toggleEnabled(realmName, roleId));
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }
     }
 }

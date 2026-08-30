@@ -13,6 +13,7 @@
         <td th:text="${r.name}"></td>
         <td th:text="${r.level}"></td>
         <td th:text="${#strings.listJoin(r.permissions.![name], ', ')}"></td>
+        <td th:text="${r.enabled}"></td>
         <td>
             <a th:href="@{/console/realms/{name}/roles/{id}/edit(name=${realmName},id=${r.id})}">Edit</a>
             <form th:action="@{/console/realms/{name}/roles/{id}/delete(name=${realmName},id=${r.id})}" method="post" style="display:inline">

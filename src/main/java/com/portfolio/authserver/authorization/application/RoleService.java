@@ -79,4 +79,10 @@ public class RoleService {
         }
         return permissions;
     }
+
+    public Role toggleEnabled(String realmName, String roleId) {
+        Role role = getRole(realmName, roleId);
+        role.setEnabled(!role.isEnabled());
+        return roleRepository.save(role);
+    }
 }

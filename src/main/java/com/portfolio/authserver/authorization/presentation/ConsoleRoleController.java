@@ -82,4 +82,18 @@ public class ConsoleRoleController {
         }
         return "redirect:/console/realms/" + realmName + "/roles";
     }
+
+    @PostMapping("/{roleId}/toggle-enabled")
+    public String toggleEnabled(@PathVariable String realmName, @PathVariable String roleId,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            Role role = roleService.toggleEnabled(realmName, roleId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Role '"+role.getName()+"' is now "
+                            +(role.isEnabled() ? "enabled" : "disabled"));
+        } catch (NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/console/realms/"+realmName+"/roles/"+roleId+"/edit";
+    }
 }
