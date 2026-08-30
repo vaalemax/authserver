@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.portfolio.authserver.authorization.domain.Permission;
+import com.portfolio.authserver.authorization.domain.Role;
 import com.portfolio.authserver.authorization.domain.UserRole;
 import com.portfolio.authserver.authorization.domain.UserRoleRepository;
 import com.portfolio.authserver.authorization.presentation.dto.CanResult;
@@ -37,10 +38,15 @@ public class AuthorizationService {
         List<ConditionMatch> matches = new ArrayList<>();
 
         for (UserRole assignment : assignments) {
-            for (Permission permission : assignment.getRole().getPermissions()) {
+            Role role = assignment.getRole();
+            if (!role.isEnabled()) continue;
+
+            for (Permission permission : role.getPermissions()) {
+                if (!permission.isEnabled()) continue;
+
                 if (permission.getSubject().equals(subject) && permission.getAction().equals(action)) {
                     JsonNode condition = resolveCondition(permission.getConditionTemplate(), assignment.getAttributes());
-                    matches.add(new ConditionMatch(assignment.getRole().getName(), condition));
+                    matches.add(new ConditionMatch(role.getName(), condition));
                 }
             }
         }
