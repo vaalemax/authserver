@@ -32,6 +32,10 @@ public class AuthorizationService {
     private final ObjectMapper objectMapper;
 
     public CanResult can(AppUser user, String subject, String action) {
+
+        if (!user.isEnabled())
+            return new CanResult(false, List.of());
+
         Instant now = Instant.now();
         List<UserRole> assignments = userRoleRepository.findActiveForUser(user, now);
 

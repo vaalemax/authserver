@@ -4,8 +4,11 @@ import com.portfolio.authserver.realm.infrastructure.RealmExistenceFilter;
 import com.portfolio.authserver.realm.domain.RealmRepository;
 import com.portfolio.authserver.security.*;
 import com.portfolio.authserver.security.login.*;
+import com.portfolio.authserver.security.token.DisabledUserFilter;
+import com.portfolio.authserver.security.token.EnabledUserJwtIssuerResolver;
 import com.portfolio.authserver.security.token.MasterRealmJwtDecoder;
 import com.portfolio.authserver.user.application.RealmAwareUserLookupService;
+import com.portfolio.authserver.user.domain.AppUserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +35,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
@@ -88,13 +92,13 @@ public class SecurityConfig {
     @Bean
     @Order(3)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
-            HttpSecurity http, RealmRepository realmRepository) throws Exception {
+            HttpSecurity http, RealmRepository realmRepository, AppUserRepository appUserRepository) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer =
                 OAuth2AuthorizationServerConfigurer.authorizationServer();
 
         http
                 .securityMatcher(configurer.getEndpointsMatcher())
-                .addFilterAfter(new RealmMismatchFilter(), SecurityContextHolderFilter.class)
+                .addFilterAfter(new DisabledUserFilter(appUserRepository), BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(new RealmExistenceFilter(realmRepository), WebAsyncManagerIntegrationFilter.class)
                 .with(configurer, (as) -> as.oidc(Customizer.withDefaults()))
                 .requestCache(cache -> cache.requestCache(new NullRequestCache()))
@@ -112,14 +116,14 @@ public class SecurityConfig {
     @Bean
     @Order(4)
     public SecurityFilterChain authorizationApiSecurityFilterChain(HttpSecurity http,
-                                                                   RealmRepository realmRepository) throws Exception {
+                                                                   RealmRepository realmRepository,
+                                                                   AppUserRepository appUserRepository)throws Exception {
         http
                 .securityMatcher("/*/auth/**")
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(
-                        JwtIssuerAuthenticationManagerResolver.fromTrustedIssuers(
-                                issuer -> realmRepository.findAll().stream().anyMatch(r -> issuer.endsWith(r.getName()))
-                        )
+                        new JwtIssuerAuthenticationManagerResolver(
+                                new EnabledUserJwtIssuerResolver(realmRepository, appUserRepository))
                 ))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
