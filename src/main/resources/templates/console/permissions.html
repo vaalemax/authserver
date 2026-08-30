@@ -14,6 +14,7 @@
         <td th:text="${p.subject}"></td>
         <td th:text="${p.action}"></td>
         <td th:text="${p.conditionTemplate}"></td>
+        <td th:text="${p.enabled}"></td>
         <td>
             <a th:href="@{/console/realms/{name}/permissions/{id}/edit(name=${realmName},id=${p.id})}">Edit</a>
             <form th:action="@{/console/realms/{name}/permissions/{id}/delete(name=${realmName},id=${p.id})}" method="post" style="display:inline">

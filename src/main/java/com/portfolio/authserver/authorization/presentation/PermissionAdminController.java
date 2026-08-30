@@ -66,4 +66,13 @@ public class PermissionAdminController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
     }
+
+    @PatchMapping("/{permissionId}/toggle-enabled")
+    public PermissionResponse toggleEnabled(@PathVariable String realmName, @PathVariable String permissionId) {
+        try {
+            return authorizationMapper.toResponse(permissionService.toggleEnabled(realmName, permissionId));
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+    }
 }

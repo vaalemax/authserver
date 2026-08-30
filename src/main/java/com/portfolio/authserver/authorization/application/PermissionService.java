@@ -76,4 +76,10 @@ public class PermissionService {
 
         permissionRepository.delete(permission);
     }
+
+    public Permission toggleEnabled(String realmName, String permissionId) {
+        Permission permission = getPermission(realmName, permissionId);
+        permission.setEnabled(!permission.isEnabled());
+        return permissionRepository.save(permission);
+    }
 }

@@ -84,4 +84,18 @@ public class ConsolePermissionController {
         }
         return "redirect:/console/realms/" + realmName + "/permissions";
     }
+
+    @PostMapping("/{permissionId}/toggle-enabled")
+    public String toggleEnabled(@PathVariable String realmName, @PathVariable String permissionId,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            Permission permission = permissionService.toggleEnabled(realmName, permissionId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Permission '"+permission.getName()+"' is now "
+                            +(permission.isEnabled() ? "enabled" : "disabled"));
+        } catch (NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/console/realms/"+realmName+"/permissions/"+permissionId+"/edit";
+    }
 }

@@ -41,6 +41,9 @@ public class Permission {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     @PrePersist
     void onCreate() { createdAt = Instant.now(); }
 }

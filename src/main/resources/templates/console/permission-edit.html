@@ -5,6 +5,8 @@
 <p><a th:href="@{/console/realms/{name}/permissions(name=${realmName})}">← Permissions</a></p>
 <h1>Edit permission</h1>
 
+<p>Status: <strong th:text="${permission.enabled} ? 'Enabled' : 'Disabled'"></strong></p>
+
 <form th:action="@{/console/realms/{name}/permissions/{id}/update(name=${realmName},id=${permission.id})}" method="post">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
@@ -19,6 +21,11 @@
     <label>Condition label <input type="text" name="conditionLabel" th:value="${permission.conditionLabel}"></label><br>
 
     <button type="submit">Save</button>
+</form>
+
+<form th:action="@{/console/realms/{name}/permissions/{id}/toggle-enabled(name=${realmName},id=${permission.id})}" method="post" style="margin-top:20px;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" th:text="${permission.enabled} ? 'Disable permission' : 'Enable permission'"></button>
 </form>
 </body>
 </html>
