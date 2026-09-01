@@ -3,7 +3,7 @@
 <head><meta charset="UTF-8"><title>Client — Admin Console</title></head>
 <body>
 <p><a th:href="@{/console/realms}">← Realms</a></p>
-<h1>Client del realm <span th:text="${realmName}"></span></h1>
+<h1><span th:text="${realmName}"></span> realm Client</h1>
 <p th:if="${successMessage}" style="color:green" th:text="${successMessage}"></p>
 <p th:if="${errorMessage}" style="color:red" th:text="${errorMessage}"></p>
 
