@@ -81,7 +81,10 @@ public class SecurityConfig {
                 }))
                 .oauth2Login(oauth2 ->
                         oauth2.defaultSuccessUrl("/console/realms", true))
-                .logout(logout -> logout.logoutSuccessUrl("/login").permitAll());
+                .logout(logout -> logout
+                        .logoutUrl("/console/logout")
+                        .logoutSuccessUrl("/login")
+                        .permitAll());
 
         return http.build();
     }
