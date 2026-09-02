@@ -26,5 +26,11 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     <button type="submit" th:text="${role.enabled} ? 'Disable role' : 'Enable role'"></button>
 </form>
+
+
+<form th:action="@{/console/realms/{name}/roles/{id}/delete(name=${realmName},id=${role.id})}" method="post" style="display:inline">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" onclick="return confirm('Delete this role?')">Delete</button>
+</form>
 </body>
 </html>
