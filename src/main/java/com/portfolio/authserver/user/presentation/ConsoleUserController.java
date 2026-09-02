@@ -59,19 +59,6 @@ public class ConsoleUserController {
         }catch(NoSuchElementException ex){
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/console/realms/" + realmName + "/users";
-    }
-
-    @PostMapping("/{username}/disable")
-    public String disableUser(@PathVariable String realmName, @PathVariable String username,
-                         RedirectAttributes redirectAttributes) {
-        try{
-            userService.disableUser(realmName, username);
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Disabled user '"+username+"'");
-        }catch(NoSuchElementException ex){
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/console/realms/" + realmName + "/users";
+        return "redirect:/console/realms/"+realmName+"/users";
     }
 }
