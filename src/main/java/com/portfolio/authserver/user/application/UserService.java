@@ -54,6 +54,8 @@ public class UserService {
             appUser.setPassword(passwordEncoder.encode(password));
         if(enabled != null && enabled && !appUser.isEnabled())
             appUser.setEnabled(true);
+        if(enabled != null && !enabled && appUser.isEnabled())
+            appUser.setEnabled(false);
 
         appUserRepository.save(appUser);
         return appUser;

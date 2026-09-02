@@ -22,6 +22,13 @@
             onclick="return confirm('Enable this user?')">
         Enable user
     </button>
+    <button type="submit"
+            name="enabled"
+            value="false"
+            th:if="${appUser.enabled}"
+            onclick="return confirm('Disable this user?')">
+        Disable user
+    </button>
 </form>
 </body>
 </html>
