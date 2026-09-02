@@ -5,9 +5,6 @@
 <p><a th:href="@{/console/realms/{name}/users/{user}/roles(name=${realmName},user=${username})}">← Assigned roles</a></p>
 <h1>Edit assigned role</h1>
 
-<div style="display: flex; gap: 10px; align-items: center;">
-
-
 <form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/update(name=${realmName},user=${username},id=${userRole.id})}" method="post">
   <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
@@ -22,9 +19,11 @@
 
   <button type="submit">Save</button>
 </form>
+
 <form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/delete(name=${realmName},user=${username},id=${userRole.id})}" method="post" style="display:inline">
   <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
   <button type="submit" onclick="return confirm('Delete this assignment?')">Delete</button>
 </form>
+
 </body>
 </html>
