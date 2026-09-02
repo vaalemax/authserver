@@ -8,12 +8,13 @@
 <p th:if="${errorMessage}" style="color:red" th:text="${errorMessage}"></p>
 
 <table border="1" cellpadding="6" cellspacing="0">
-    <tr><th>Role</th><th>Valid from</th><th>Valid to</th><th>Attributes</th></tr>
+    <tr><th>Role</th><th>Valid from</th><th>Valid to</th><th>Attributes</th><th></th></tr>
     <tr th:each="a : ${assignments}">
         <td th:text="${a.role.name}"></td>
         <td th:text="${a.validFrom}"></td>
         <td th:text="${a.validTo != null ? a.validTo : 'no expiration'}"></td>
         <td th:text="${a.attributes}"></td>
+        <td><a th:href="@{/console/realms/{name}/users/{user}/roles/{id}/edit(name=${realmName},user=${username},id=${a.id})}">Edit</a></td>
     </tr>
 </table>
 
@@ -28,7 +29,7 @@
     <label>Valid from <input type="datetime-local" name="validFrom"></label><br>
     <label>Valid to (leave blank = no expiration) <input type="datetime-local" name="validTo"></label><br>
     <label>Attributes (JSON)<br>
-        <textarea name="attributesJson" rows="4" cols="80"
+        <textarea name="attributes" rows="4" cols="80"
                   placeholder='[{"key":"istatRegione","type":"string","value":"[1,2,3]","isArray":true}]'></textarea>
     </label><br>
     <button type="submit">Assign</button>

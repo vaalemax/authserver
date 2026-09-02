@@ -8,12 +8,13 @@
 <p th:if="${errorMessage}" style="color:red" th:text="${errorMessage}"></p>
 
 <table border="1" cellpadding="6" cellspacing="0">
-    <tr><th>Username</th><th>Enabled</th><th>Roles (auth)</th></tr>
+    <tr><th>Username</th><th>Enabled</th><th>Roles (auth)</th><th></th><th></th></tr>
     <tr th:each="user : ${users}">
         <td th:text="${user.username}"></td>
         <td th:text="${user.enabled}"></td>
         <td th:text="${user.roles}"></td>
         <td><a th:href="@{/console/realms/{r}/users/{u}/roles(r=${realmName},u=${user.username})}">ABAC roles</a></td>
+        <td><a th:href="@{/console/realms/{name}/users/{user}/edit(name=${realmName},user=${user.username})}">Edit</a></td>
     </tr>
 </table>
 

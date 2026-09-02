@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Edit Role — Admin Console</title></head>
+<body>
+<p><a th:href="@{/console/realms/{name}/roles(name=${realmName})}">← Roles</a></p>
+<h1>Edit role <span th:text="${role.name}"></span></h1>
+
+<form th:action="@{/console/realms/{name}/roles/{id}/update(name=${realmName},id=${role.id})}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+    <label>Level <input type="number" name="level" th:value="${role.level}"></label><br>
+
+    <p>Permissions:</p>
+    <div th:each="p : ${allPermissions}">
+        <label>
+            <input type="checkbox" name="permissionIds" th:value="${p.id}"
+                   th:checked="${assignedPermissionIds.contains(p.id)}">
+            <span th:text="${p.name + ' (' + p.subject + '/' + p.action + ')'}"></span>
+        </label><br>
+    </div>
+
+    <button type="submit">Save</button>
+</form>
+
+<form th:action="@{/console/realms/{name}/roles/{id}/toggle-enabled(name=${realmName},id=${role.id})}" method="post" style="margin-top:20px;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" th:text="${role.enabled} ? 'Disable role' : 'Enable role'"></button>
+</form>
+
+
+<form th:action="@{/console/realms/{name}/roles/{id}/delete(name=${realmName},id=${role.id})}" method="post" style="display:inline">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" onclick="return confirm('Delete this role?')">Delete</button>
+</form>
+</body>
+</html>

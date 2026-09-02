@@ -13,9 +13,10 @@
         <td th:text="${realm.displayName}"></td>
         <td th:text="${realm.enabled}"></td>
         <td>
-            <a th:href="@{/console/realms/{name}/clients(name=${realm.name})}">Client</a> |
-            <a th:href="@{/console/realms/{name}/users(name=${realm.name})}">Users</a> |
-            <a th:href="@{/console/realms/{name}/roles(name=${realm.name})}">Roles</a> |
+            <a th:href="@{/console/realms/{name}/edit(name=${realm.name})}">Edit</a>
+            <a th:href="@{/console/realms/{name}/clients(name=${realm.name})}">Clients</a>
+            <a th:href="@{/console/realms/{name}/users(name=${realm.name})}">Users</a>
+            <a th:href="@{/console/realms/{name}/roles(name=${realm.name})}">Roles</a>
             <a th:href="@{/console/realms/{name}/permissions(name=${realm.name})}">Permissions</a>
         </td>
     </tr>
@@ -24,7 +25,7 @@
 <h2>New realm</h2>
 <form th:action="@{/console/realms}" method="post">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <label>Name (slug) <input type="text" name="name" required></label><br>
+    <label>Name (slug) <input type="text" name="realmName" required></label><br>
     <label>Display name <input type="text" name="displayName"></label><br>
     <button type="submit">Create</button>
 </form>

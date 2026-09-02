@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changes/002-create-user-tables.yaml
   - include:
       file: db/changelog/changes/003-create-authorization-tables.yaml
+  - include:
+      file: db/changelog/changes/007-add-enabled-to-permission-and-role.yaml

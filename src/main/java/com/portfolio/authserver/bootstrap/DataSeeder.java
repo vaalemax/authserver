@@ -1,11 +1,11 @@
 package com.portfolio.authserver.bootstrap;
 
-import com.portfolio.authserver.user.AppUser;
-import com.portfolio.authserver.realm.Realm;
-import com.portfolio.authserver.user.AppUserJpaRepository;
-import com.portfolio.authserver.client.ClientJpaRepository;
-import com.portfolio.authserver.client.JpaRegisteredClientRepository;
-import com.portfolio.authserver.realm.RealmService;
+import com.portfolio.authserver.client.application.ClientService;
+import com.portfolio.authserver.user.domain.AppUser;
+import com.portfolio.authserver.realm.domain.Realm;
+import com.portfolio.authserver.user.domain.AppUserRepository;
+import com.portfolio.authserver.client.domain.ClientRepository;
+import com.portfolio.authserver.realm.application.RealmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -43,10 +43,10 @@ public class DataSeeder implements ApplicationRunner {
     @Value("${admin.console-client-secret}")
     private String adminConsoleClientSecret;
 
-    private final AppUserJpaRepository appUserJpaRepository;
-    private final ClientJpaRepository clientJpaRepository;
-    private final JpaRegisteredClientRepository jpaRegisteredClientRepository;
+    private final AppUserRepository appUserRepository;
+    private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClientService clientService;
     private final RealmService realmService;
 
     @Override
@@ -58,14 +58,16 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private void seedMasterRealmAndAdminClient() {
-        Realm master = realmService.getOrCreateRealm(MASTER_REALM, "Master");
+        Realm master = realmService.getRealm(MASTER_REALM);
+        if(master == null)
+            master = realmService.createRealm(MASTER_REALM, "Master");
         seedAdminCliClient(master);
         seedConsoleUser(master);
         seedConsoleClient(master);
     }
 
     private void seedAdminCliClient(Realm master) {
-        if (clientJpaRepository.findByRealm_NameAndClientId(MASTER_REALM, "admin-cli").isPresent()) return;
+        if (clientRepository.findByRealmNameAndClientId(MASTER_REALM, "admin-cli").isPresent()) return;
 
         RegisteredClient adminClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("admin-cli")
@@ -76,11 +78,11 @@ public class DataSeeder implements ApplicationRunner {
                 .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(15)).build())
                 .build();
 
-        jpaRegisteredClientRepository.saveForRealm(adminClient, master);
+        clientService.saveForRealm(adminClient, master);
     }
 
     private void seedConsoleUser(Realm master) {
-        if (appUserJpaRepository.findByRealm_NameAndUsername(MASTER_REALM, adminConsoleUsername).isPresent()) return;
+        if (appUserRepository.findByRealmNameAndUsername(MASTER_REALM, adminConsoleUsername).isPresent()) return;
 
         AppUser admin = new AppUser();
         admin.setId(UUID.randomUUID().toString());
@@ -89,11 +91,11 @@ public class DataSeeder implements ApplicationRunner {
         admin.setPassword(passwordEncoder.encode(adminConsolePassword));
         admin.setEnabled(true);
         admin.setRoles(Set.of("ADMIN"));
-        appUserJpaRepository.save(admin);
+        appUserRepository.save(admin);
     }
 
     private void seedConsoleClient(Realm master) {
-        if (clientJpaRepository.findByRealm_NameAndClientId(MASTER_REALM, "admin-console").isPresent()) return;
+        if (clientRepository.findByRealmNameAndClientId(MASTER_REALM, "admin-console").isPresent()) return;
 
         RegisteredClient consoleClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("admin-console")
@@ -107,15 +109,18 @@ public class DataSeeder implements ApplicationRunner {
                 .clientSettings(ClientSettings.builder().requireProofKey(false).requireAuthorizationConsent(false).build())
                 .build();
 
-        jpaRegisteredClientRepository.saveForRealm(consoleClient, master);
+        clientService.saveForRealm(consoleClient, master);
     }
 
     private Realm seedRealm() {
-        return realmService.getOrCreateRealm(DEFAULT_REALM, "Aether");
+        Realm master = realmService.getRealm(MASTER_REALM);
+        if(master == null)
+            master = realmService.createRealm(MASTER_REALM, "Master");
+        return master;
     }
 
     private void seedUser(Realm realm) {
-        if (appUserJpaRepository.findByRealm_NameAndUsername(realm.getName(), "vale").isPresent())
+        if (appUserRepository.findByRealmNameAndUsername(realm.getName(), "vale").isPresent())
             return;
         AppUser vale = new AppUser();
         vale.setId(UUID.randomUUID().toString());
@@ -124,11 +129,11 @@ public class DataSeeder implements ApplicationRunner {
         vale.setPassword(passwordEncoder.encode("password"));
         vale.setEnabled(true);
         vale.setRoles(Set.of("ADMIN"));
-        appUserJpaRepository.save(vale);
+        appUserRepository.save(vale);
     }
 
     private void seedClient(Realm realm) {
-        if (clientJpaRepository.findByRealm_NameAndClientId(realm.getName(), "aether-client").isPresent())
+        if (clientRepository.findByRealmNameAndClientId(realm.getName(), "aether-client").isPresent())
             return;
 
         RegisteredClient aetherClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -146,6 +151,6 @@ public class DataSeeder implements ApplicationRunner {
                         .build())
                 .build();
 
-        jpaRegisteredClientRepository.saveForRealm(aetherClient, realm);
+        clientService.saveForRealm(aetherClient, realm);
     }
 }

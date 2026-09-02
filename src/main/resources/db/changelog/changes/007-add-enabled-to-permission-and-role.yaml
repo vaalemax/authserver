@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-add-enabled-to-permission-and-role
+      author: vale
+      changes:
+        - addColumn:
+            tableName: permission
+            columns:
+              - column: { name: enabled, type: boolean, defaultValueBoolean: true, constraints: { nullable: false } }
+        - addColumn:
+            tableName: role
+            columns:
+              - column: { name: enabled, type: boolean, defaultValueBoolean: true, constraints: { nullable: false } }
