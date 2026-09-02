@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -19,9 +20,15 @@ public class RealmMismatchFilter extends OncePerRequestFilter {
         String pathRealm = extractRealm(request.getRequestURI());
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean mismatch = auth != null && auth.isAuthenticated()
-                && auth.getPrincipal() instanceof RealmAwareUserDetails userDetails
-                && !userDetails.getRealmName().equals(pathRealm);
+        boolean mismatch = false;
+
+        if (auth != null && auth.isAuthenticated()) {
+            if (auth.getPrincipal() instanceof RealmAwareUserDetails userDetails) {
+                mismatch = !userDetails.getRealmName().equals(pathRealm);
+            } else if (auth instanceof OAuth2AuthenticationToken) {
+                mismatch = !"master".equals(pathRealm);
+            }
+        }
 
         if (mismatch) {
             SecurityContextHolder.clearContext();
