@@ -101,6 +101,7 @@ public class SecurityConfig {
 
         http
                 .securityMatcher(configurer.getEndpointsMatcher())
+                .addFilterAfter(new RealmMismatchFilter(), SecurityContextHolderFilter.class)
                 .addFilterAfter(new DisabledUserFilter(appUserRepository), BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(new RealmExistenceFilter(realmRepository), WebAsyncManagerIntegrationFilter.class)
                 .with(configurer, (as) -> as.oidc(Customizer.withDefaults()))
