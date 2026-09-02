@@ -7,32 +7,30 @@
 
 <p>Status: <strong th:text="${permission.enabled} ? 'Enabled' : 'Disabled'"></strong></p>
 
-<div style="display: flex; gap: 10px; align-items: center;">
-    <form th:action="@{/console/realms/{name}/permissions/{id}/update(name=${realmName},id=${permission.id})}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+<form th:action="@{/console/realms/{name}/permissions/{id}/update(name=${realmName},id=${permission.id})}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-        <label>Subject <input type="text" th:value="${permission.subject}" disabled></label><br>
-        <label>Action <input type="text" th:value="${permission.action}" disabled></label><br>
-        <p style="color:#666; font-size:.85em;">Subject and action are immutable. Delete and recreate to change them.</p>
+    <label>Subject <input type="text" th:value="${permission.subject}" disabled></label><br>
+    <label>Action <input type="text" th:value="${permission.action}" disabled></label><br>
+    <p style="color:#666; font-size:.85em;">Subject and action are immutable. Delete and recreate to change them.</p>
 
-        <label>Name <input type="text" name="name" th:value="${permission.name}" required></label><br>
-        <label>Subject label <input type="text" name="subjectLabel" th:value="${permission.subjectLabel}"></label><br>
-        <label>Action label <input type="text" name="actionLabel" th:value="${permission.actionLabel}"></label><br>
-        <label>Condition template <input type="text" name="conditionTemplate" size="80" th:value="${permission.conditionTemplate}"></label><br>
-        <label>Condition label <input type="text" name="conditionLabel" th:value="${permission.conditionLabel}"></label><br>
+    <label>Name <input type="text" name="name" th:value="${permission.name}" required></label><br>
+    <label>Subject label <input type="text" name="subjectLabel" th:value="${permission.subjectLabel}"></label><br>
+    <label>Action label <input type="text" name="actionLabel" th:value="${permission.actionLabel}"></label><br>
+    <label>Condition template <input type="text" name="conditionTemplate" size="80" th:value="${permission.conditionTemplate}"></label><br>
+    <label>Condition label <input type="text" name="conditionLabel" th:value="${permission.conditionLabel}"></label><br>
 
-        <button type="submit">Save</button>
-    </form>
+    <button type="submit">Save</button>
+</form>
 
-    <form th:action="@{/console/realms/{name}/permissions/{id}/toggle-enabled(name=${realmName},id=${permission.id})}" method="post" style="margin-top:20px;">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <button type="submit" th:text="${permission.enabled} ? 'Disable permission' : 'Enable permission'"></button>
-    </form>
+<form th:action="@{/console/realms/{name}/permissions/{id}/toggle-enabled(name=${realmName},id=${permission.id})}" method="post" style="margin-top:20px;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" th:text="${permission.enabled} ? 'Disable permission' : 'Enable permission'"></button>
+</form>
 
-    <form th:action="@{/console/realms/{name}/permissions/{id}/delete(name=${realmName},id=${permission.id})}" method="post" style="display:inline">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <button type="submit" onclick="return confirm('Delete this permission?')">Delete</button>
-    </form>
-</div>
+<form th:action="@{/console/realms/{name}/permissions/{id}/delete(name=${realmName},id=${permission.id})}" method="post" style="display:inline">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" onclick="return confirm('Delete this permission?')">Delete</button>
+</form>
 </body>
 </html>

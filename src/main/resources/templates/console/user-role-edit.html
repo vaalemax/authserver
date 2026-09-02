@@ -7,24 +7,24 @@
 
 <div style="display: flex; gap: 10px; align-items: center;">
 
-  <form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/update(name=${realmName},user=${username},id=${userRole.id})}" method="post">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-    <label>Role <input type="text" th:value="${userRole.role.name}" disabled></label><br>
-    <p style="color:#666; font-size:.85em;">Role is immutable. Delete and recreate the role to change it.</p>
+<form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/update(name=${realmName},user=${username},id=${userRole.id})}" method="post">
+  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-    <label>Valid from <input type="datetime-local" name="validFrom" th:value="${validFromLocal}" required></label><br>
-    <label>Valid to <input type="datetime-local" name="validTo" th:value="${validToLocal}"></label><br>
-    <label>Attributes (JSON)<br>
-      <textarea name="attributes" rows="4" cols="80" required th:text="${userRole.attributes}"></textarea>
-    </label><br>
+  <label>Role <input type="text" th:value="${userRole.role.name}" disabled></label><br>
+  <p style="color:#666; font-size:.85em;">Role is immutable. Delete and recreate the role to change it.</p>
 
-    <button type="submit">Save</button>
-  </form>
-  <form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/delete(name=${realmName},user=${username},id=${userRole.id})}" method="post" style="display:inline">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <button type="submit" onclick="return confirm('Delete this assignment?')">Delete</button>
-  </form>
-</div>
+  <label>Valid from <input type="datetime-local" name="validFrom" th:value="${validFromLocal}" required></label><br>
+  <label>Valid to <input type="datetime-local" name="validTo" th:value="${validToLocal}"></label><br>
+  <label>Attributes (JSON)<br>
+    <textarea name="attributes" rows="4" cols="80" required th:text="${userRole.attributes}"></textarea>
+  </label><br>
+
+  <button type="submit">Save</button>
+</form>
+<form th:action="@{/console/realms/{name}/users/{user}/roles/{id}/delete(name=${realmName},user=${username},id=${userRole.id})}" method="post" style="display:inline">
+  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+  <button type="submit" onclick="return confirm('Delete this assignment?')">Delete</button>
+</form>
 </body>
 </html>
