@@ -5,7 +5,9 @@ Server. Not a wrapper around Keycloak, an exploration of what Keycloak actually 
 under the hood, rebuilt piece by piece to understand the protocol, not just configure it.
 
 This isn't a toy that only talks to itself. It's the identity provider behind
-**[Keyra]([#](https://github.com/vaalemax/keyra_authserver_implementation))**, a real password manager, including a live authorization check on every request to a permission-gated feature.
+**[Keyra](https://github.com/vaalemax/keyra_authserver_implementation)**, a real password
+manager, including a live authorization check on every request to a permission-gated
+feature, and stateless-token invalidation that survives a user being disabled mid-session.
 
 ---
 
@@ -17,10 +19,11 @@ Keycloak is**: realm isolation, per-tenant signing keys, an admin API, and an
 authorization model that goes beyond a flat list of roles?
 
 Spring Authorization Server gives you a spec-compliant OAuth2/OIDC implementation. It does
-not give you multi-tenancy, an admin console, or fine-grained authorization: those are
-architectural problems I have solved myself. The features below are the result; the
+not give you multi-tenancy, an admin console, scope-gated custom claims, or a way to
+invalidate a stateless JWT mid-session: those are architectural problems I have solved
+myself. The features below are the result; the
 [Interesting Problems Solved](#-interesting-problems-solved) section is the honest account
-of how they got built.
+of how they got built, including the attempts that didn't work the first time.
 
 ---
 
@@ -33,15 +36,25 @@ of how they got built.
 - **Per-realm signing keys** — each realm generates and owns its own RSA keypair. A
   token issued by one realm cannot be validated against another realm's public key, even
   if both realms happen to share a username.
-- **Realm isolation enforced, not just assumed** — a session authenticated against one
-  realm cannot silently reach another realm's protocol endpoints. This took more than one
-  attempt to get right (see below).
-- **A real Admin API** — REST endpoints to manage realms, clients, users, roles, and
-  permissions, authenticated via OAuth2 client credentials against a dedicated `master`
-  realm — not a hardcoded username and password.
+- **Realm isolation enforced at every boundary, not just assumed** — a session
+  authenticated against one realm cannot silently reach another realm's protocol
+  endpoints, whether that session came from a realm login or from the Admin Console's own
+  OAuth2 login. This took more than one attempt to get right (see below).
+- **Stateless tokens that can still be shut off** — JWTs are self-contained by design and
+  can't be revoked in the traditional sense, but disabling a user immediately rejects
+  their already-issued bearer tokens on every endpoint that checks authorization, not just
+  their next login attempt.
+- **Custom claims and refresh tokens, properly scope-gated** — the `roles` claim and
+  refresh token issuance are both opt-in per OAuth2 request (`roles` and `offline_access`
+  scopes respectively), not bolted onto every token regardless of what the client actually
+  asked for.
+- **A real Admin API** — full CRUD, not just create-and-forget, across realms, clients,
+  users, roles, and permissions, authenticated via OAuth2 client credentials against a
+  dedicated `master` realm — not a hardcoded username and password.
 - **A working Admin Console** — a Thymeleaf UI that is itself an OAuth2 client of the
   `master` realm, logging in through the exact same Authorization Code flow every other
-  application on this server uses. The admin tool eats its own dog food.
+  application on this server uses. Full management of realms, clients, users, roles,
+  permissions, and role assignments: no curl required to run the system day to day.
 - **A hybrid RBAC/ABAC authorization engine** — roles carry permissions, but permissions
   can declare `{{placeholder}}` conditions resolved per user-role assignment at request
   time. A `POST /{realm}/auth/can` endpoint answers "can this token's holder perform this
@@ -75,6 +88,28 @@ a hypothetical `acme-crm` for something else entirely) can register a client wit
 same `client_id`, assign a user the same username, and never collide: the realm is part
 of the identity, not a filter applied on top of a shared one.
 
+**Code organization follows the same boundary.** Each domain concept — `realm`, `client`,
+`user`, `authorization` — is its own package with a hexagonal layering inside:
+
+```
+realm/
+├── domain/          → Realm, RealmRepository (interface only)
+├── application/      → RealmService — use cases, zero HTTP awareness
+├── infrastructure/   → JpaRealmRepository, RealmExistenceFilter
+└── presentation/      → RealmAdminController, ConsoleRealmController, DTOs, mappers
+```
+
+`application` services never throw `ResponseStatusException`: they raise plain domain
+exceptions (`NoSuchElementException`, `IllegalArgumentException`, `IllegalStateException`),
+and each `presentation` controller translates those into the right HTTP status or Console
+flash message. The same `RoleService.updateRole(...)` call, for instance, backs both the
+REST API and the Console form, so a validation rule written once can't quietly diverge
+between the two — exactly the kind of bug this project hit and fixed during development.
+
+`security/` sits outside any single domain on purpose: it's infrastructure shared across
+all of them (login handlers, JWT customizers, cross-realm guards), not logic that belongs
+to one bounded context.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -87,6 +122,7 @@ of the identity, not a filter applied on top of a shared one.
 | Persistence | Spring Data JPA (Hibernate), PostgreSQL |
 | Schema migrations | Liquibase |
 | Web layer | Spring MVC, Thymeleaf (login pages, Admin Console) |
+| Config | spring-dotenv (`.env` loaded natively into the Spring environment) |
 | Build | Maven |
 | Infra | Docker Compose (PostgreSQL) |
 
@@ -98,10 +134,20 @@ of the identity, not a filter applied on top of a shared one.
   public clients alike.
 - **Per-realm RSA key isolation**: compromising or rotating one realm's signing key has
   no effect on any other realm.
+- **Disabled users lose access within the same request, not the next login** — a custom
+  `AuthenticationManagerResolver` rejects bearer tokens for disabled users on the
+  authorization decision endpoint, and a dedicated filter does the same for the OIDC
+  UserInfo endpoint, closing the gap that plain JWT statelessness would otherwise leave
+  open for the life of the token.
+- **Scope-gated claims and grants**: a client that doesn't ask for `roles` doesn't get
+  role information in its tokens; one that doesn't ask for `offline_access` doesn't get a
+  refresh token. Both required replacing Spring Authorization Server's default token
+  generation, not just flipping a config flag.
 - **Admin operations require a real OAuth2 access token**, scoped and short-lived
   (15 minutes), not a static credential checked with `equals()`.
 - **Discovery documents don't leak tenant existence**: requesting the metadata for a
-  realm that doesn't exist returns 404, not a fully-formed (if useless) discovery document.
+  realm that doesn't exist, or one that's been disabled, returns 404, not a fully-formed
+  (if useless) discovery document.
 - **Authorization decisions are computed live**, not cached in a token claim that could
   drift out of date the moment a permission assignment changes.
 
@@ -121,16 +167,42 @@ configured key source, if one already exists. The fix wasn't a config flag; it w
 building that decoder manually, inside the one security chain that should ever see it,
 instead of letting it live as a globally discoverable bean.
 
-**Realm isolation looked correct and wasn't.** An `AuthorizationManager`-based check
-(`.access(...)`) that compared the authenticated principal's realm against the request
-path worked perfectly for the very first, unauthenticated request, and was silently never
-consulted again for any request afterward, because Spring Authorization Server's internal
-protocol filters resolve an already-authenticated request before `AuthorizationFilter` (the
-component that actually runs `authorizeHttpRequests` rules) ever gets a turn. The fix
-reframed the problem: instead of trying to *deny* a mismatched session after the fact,
-a filter now clears the security context *before* the protocol filters see it, so a
-realm-mismatched request arrives looking exactly like any other unauthenticated one, and
-falls through the same, already-correct "please log in" path.
+**Realm isolation looked correct twice, and wasn't, for two different reasons.** First
+attempt: an `AuthorizationManager`-based check comparing the authenticated principal's
+realm against the request path worked perfectly for the very first, unauthenticated
+request, and was silently never consulted again for any request afterward, because Spring
+Authorization Server's internal protocol filters resolve an already-authenticated request
+before `AuthorizationFilter` ever gets a turn. The fix reframed the problem: instead of
+trying to *deny* a mismatched session after the fact, a filter now clears the security
+context before the protocol filters see it, so a mismatched request arrives looking
+exactly like any other unauthenticated one, and falls through the same, already-correct
+"please log in" path. Second surprise, found later: that same filter only recognized
+realm-login sessions — an Admin Console session, a completely different principal type
+from a completely different login mechanism, sailed straight through unchecked, because it
+was never the type the filter was written to look for. Both mechanisms now go through the
+same guard.
+
+**Disabling a user doesn't touch a JWT already in someone's pocket, by design, not by
+oversight.** A signed, unexpired token stays verifiable purely from its signature, with or
+without the database agreeing that its owner should still have access. Closing that gap
+took two different techniques for two different chains: on the endpoints this project
+fully controls (the `/auth/can` decision endpoint), a custom `AuthenticationManagerResolver`
+rejects the token during authentication itself, before any business logic runs. On the
+OIDC UserInfo endpoint, whose internals Spring Authorization Server owns, there's no
+equivalent hook, so a filter lets authentication succeed and then inspects the result
+against the current database state, clearing it if the user has since been disabled. Same
+guarantee, two mechanisms, chosen by what each chain actually exposes.
+
+**Issuing a refresh token only for clients that asked for one isn't supported out of the
+box, and it's a known gap, not a misunderstanding.** Spring Authorization Server issues a
+refresh token to any client configured for the grant type, regardless of which scopes were
+actually requested; there's an open upstream issue asking for exactly this. Closing it
+meant replacing the default token generator with a composed one: reusing the framework's
+own JWT and access-token generators, but swapping in a refresh-token generator that returns
+`null` unless `offline_access` was explicitly granted. The easy-to-miss part: doing this
+manually also means manually re-wiring the custom claims customizer into the new JWT
+generator, since it no longer gets attached automatically — a one-line omission that would
+have silently dropped the `roles` claim from every token.
 
 **The server, as a client of itself, deadlocked at startup.** Wiring the Admin Console as
 an OAuth2 client of this server's own `master` realm — issuer-uri discovery included —
@@ -145,12 +217,24 @@ discovery, sidestepping the self-reference entirely.
 
 - **No signing key rotation.** Each realm's RSA keypair is generated once, at creation,
   with no admin action (yet) to rotate it.
-- **Admin API is create/list only** on most resources: no update or delete yet on
-  clients, users, roles, or permissions.
+- **The login page isn't per-realm branded.** All realms share one physical `/login`
+  page; the realm and the post-login redirect target are threaded through as request
+  parameters rather than through distinct, brandable per-realm paths
+  (`/realms/{realm}/login-actions/...` in real Keycloak). A deliberate simplification, not
+  an oversight.
+- **"Admin" in the `master` realm is coarse.** Any authenticated user in `master` is
+  treated as an administrator: there's no further role check within that realm. Adequate
+  for a single-operator setup, not for a team.
 - **No brute-force protection on login.** Unlike Keyra (which has IP-based rate limiting),
   this server's login endpoint has none yet.
+- **Stateless-token invalidation covers the endpoints this project owns, not every
+  conceivable one.** `/auth/can` and `/userinfo` both check whether a user has been
+  disabled since their token was issued; a hypothetical future resource-server endpoint
+  that validates tokens independently would need the same treatment applied deliberately —
+  it isn't automatic just because the mechanism exists elsewhere.
 - **Admin Console is functional, not polished.** No CSS, no JavaScript, by design: it
-  proves the OAuth2 wiring works, it doesn't try to look like a finished product.
+  proves the OAuth2 wiring and the CRUD flows work, it doesn't try to look like a finished
+  product.
 
 ---
 
@@ -171,7 +255,8 @@ cp .env.example .env
 mvn spring-boot:run
 ```
 
-The server will be available at `http://localhost:9000`. A `master` realm, an
+`.env` is loaded automatically into the Spring environment at startup, no manual export
+step needed. The server will be available at `http://localhost:9000`. A `master` realm, an
 `admin-cli` client (client_credentials), and an `admin-console` user/client are seeded
 automatically on first startup.
 
@@ -190,7 +275,8 @@ curl -X POST http://localhost:9000/admin/realms -H "Authorization: Bearer $TOKEN
 ```
 
 Or skip curl entirely: log in to `http://localhost:9000/console/realms` with the seeded
-admin console credentials.
+admin console credentials, and manage realms, clients, users, roles, and permissions
+directly from the browser.
 
 **Requirements:** Docker and Docker Compose, JDK 21, Maven.
 
