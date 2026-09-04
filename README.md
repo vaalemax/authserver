@@ -50,7 +50,7 @@ of how they got built, including the attempts that didn't work the first time.
   asked for.
 - **A real Admin API** — full CRUD, not just create-and-forget, across realms, clients,
   users, roles, and permissions, authenticated via OAuth2 client credentials against a
-  dedicated `master` realm — not a hardcoded username and password.
+  dedicated `master` realm.
 - **A working Admin Console** — a Thymeleaf UI that is itself an OAuth2 client of the
   `master` realm, logging in through the exact same Authorization Code flow every other
   application on this server uses. Full management of realms, clients, users, roles,
@@ -58,8 +58,7 @@ of how they got built, including the attempts that didn't work the first time.
 - **A hybrid RBAC/ABAC authorization engine** — roles carry permissions, but permissions
   can declare `{{placeholder}}` conditions resolved per user-role assignment at request
   time. A `POST /{realm}/auth/can` endpoint answers "can this token's holder perform this
-  action on this subject" with a live decision, including the resolved condition — not
-  just a boolean.
+  action on this subject" with a live decision, including the resolved condition.
 - **Proven with a real client, not just Postman** — Keyra's login, its optional
   two-factor vault unlock, and a permission-gated activity log are all wired against this
   server's real Authorization Code + PKCE flow and its `/auth/can` endpoint.
@@ -102,9 +101,7 @@ realm/
 `application` services never throw `ResponseStatusException`: they raise plain domain
 exceptions (`NoSuchElementException`, `IllegalArgumentException`, `IllegalStateException`),
 and each `presentation` controller translates those into the right HTTP status or Console
-flash message. The same `RoleService.updateRole(...)` call, for instance, backs both the
-REST API and the Console form, so a validation rule written once can't quietly diverge
-between the two — exactly the kind of bug this project hit and fixed during development.
+flash message.
 
 `security/` sits outside any single domain on purpose: it's infrastructure shared across
 all of them (login handlers, JWT customizers, cross-realm guards), not logic that belongs
@@ -134,7 +131,7 @@ to one bounded context.
   public clients alike.
 - **Per-realm RSA key isolation**: compromising or rotating one realm's signing key has
   no effect on any other realm.
-- **Disabled users lose access within the same request, not the next login** — a custom
+- **Disabled users lose access within the same request, not the next login**: a custom
   `AuthenticationManagerResolver` rejects bearer tokens for disabled users on the
   authorization decision endpoint, and a dedicated filter does the same for the OIDC
   UserInfo endpoint, closing the gap that plain JWT statelessness would otherwise leave
