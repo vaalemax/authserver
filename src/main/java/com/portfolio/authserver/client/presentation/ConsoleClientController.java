@@ -96,4 +96,18 @@ public class ConsoleClientController {
         }
         return "redirect:/console/realms/"+realmName+"/clients";
     }
+
+    @PostMapping("/{clientId}/toggle-enabled")
+    public String toggleEnabled(@PathVariable String realmName, @PathVariable String clientId,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            Client client = clientService.toggleEnabled(realmName, clientId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Client '"+client.getClientName()+"' is now "
+                            +(client.isEnabled() ? "enabled" : "disabled"));
+        } catch (NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/console/realms/"+realmName+"/clients/"+clientId+"/edit";
+    }
 }

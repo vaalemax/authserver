@@ -1,5 +1,6 @@
 package com.portfolio.authserver.client.application;
 
+import com.portfolio.authserver.authorization.domain.Role;
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.domain.ClientRepository;
 import com.portfolio.authserver.client.presentation.mapper.ClientMapper;
@@ -88,6 +89,12 @@ public class ClientService {
         Client client = getClient(realmName, clientId);
 
         clientRepository.delete(client);
+    }
+
+    public Client toggleEnabled(String realmName, String clientId) {
+        Client client = getClient(realmName, clientId);
+        client.setEnabled(!client.isEnabled());
+        return clientRepository.save(client);
     }
 
     public void saveForRealm(RegisteredClient registeredClient, Realm realm) {

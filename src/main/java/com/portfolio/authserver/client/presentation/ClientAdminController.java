@@ -1,5 +1,6 @@
 package com.portfolio.authserver.client.presentation;
 
+import com.portfolio.authserver.authorization.presentation.dto.RoleResponse;
 import com.portfolio.authserver.client.application.ClientService;
 import com.portfolio.authserver.client.domain.Client;
 import com.portfolio.authserver.client.presentation.dto.ClientResponse;
@@ -65,6 +66,15 @@ public class ClientAdminController {
             clientService.deleteClient(realmName, clientId);
             return ResponseEntity.noContent().build();
         }catch(NoSuchElementException ex){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+    }
+
+    @PatchMapping("/{clientId}/toggle-enabled")
+    public ClientResponse toggleEnabled(@PathVariable String realmName, @PathVariable String clientId) {
+        try {
+            return clientMapper.toResponse(clientService.toggleEnabled(realmName, clientId));
+        } catch (NoSuchElementException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }
     }

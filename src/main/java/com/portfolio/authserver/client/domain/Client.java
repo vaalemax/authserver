@@ -35,6 +35,9 @@ public class Client {
     @Column(name = "client_name")
     private String clientName;
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "oauth2_client_auth_methods", joinColumns = @JoinColumn(name = "client_pk_id"))
     @Column(name = "authentication_method")
