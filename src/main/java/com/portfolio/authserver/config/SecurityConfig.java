@@ -7,7 +7,6 @@ import com.portfolio.authserver.security.login.*;
 import com.portfolio.authserver.security.token.DisabledUserFilter;
 import com.portfolio.authserver.security.token.EnabledUserJwtIssuerResolver;
 import com.portfolio.authserver.security.token.MasterRealmJwtDecoder;
-import com.portfolio.authserver.user.application.RealmAwareUserLookupService;
 import com.portfolio.authserver.user.domain.AppUserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -161,12 +159,6 @@ public class SecurityConfig {
                 //.issuer("http://localhost:9000")
                 .multipleIssuersAllowed(true)
                 .build();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider(RealmAwareUserLookupService userLookupService,
-                                                         PasswordEncoder passwordEncoder) {
-        return new RealmAwareAuthenticationProvider(userLookupService, passwordEncoder);
     }
 
     @Bean
