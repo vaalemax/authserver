@@ -193,9 +193,4 @@ public class SecurityConfig {
 
         return new InMemoryClientRegistrationRepository(adminConsole);
     }
-
-    private static String extractRealm(String requestUri) {
-        String[] segments = requestUri.split("/");
-        return segments.length > 1 ? segments[1] : null;
-    }
 }
