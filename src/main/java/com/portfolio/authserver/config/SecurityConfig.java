@@ -89,9 +89,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // intercetta SOLO gli endpoint del protocollo
-    //                         /oauth2/authorize, /oauth2/token, /oauth2/jwks, /.well-known/openid-configuration.
-    // securityMatcher() limita esplicitamente il perimetro di questa chain a quegli URL.
+    // onlt intercepts /oauth2/authorize, /oauth2/token, /oauth2/jwks, /.well-known/openid-configuration endpoints
     @Bean
     @Order(3)
     public SecurityFilterChain authorizationServerSecurityFilterChain(
