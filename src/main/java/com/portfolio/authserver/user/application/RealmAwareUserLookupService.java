@@ -19,13 +19,13 @@ public class RealmAwareUserLookupService {
 
     private final AppUserRepository appUserRepository;
 
+    // loadUser is realm-scoped, so it cannot be implementing  UserDetailsService's loadUserByUsername
     public UserDetails loadUserByRealmAndUsername(String realmName, String username) {
         AppUser appUser = appUserRepository.findByRealmNameAndUsername(realmName, username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "User not found: " + username + " in realm " + realmName));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: "+username+" in realm "+realmName));
 
         Set<GrantedAuthority> authorities = appUser.getRoles().stream()
-                .map(r -> (GrantedAuthority) new SimpleGrantedAuthority("ROLE_" + r))
+                .map(role -> (GrantedAuthority) new SimpleGrantedAuthority("ROLE_"+role))
                 .collect(Collectors.toSet());
 
         return new RealmAwareUserDetails(appUser.getUsername(), appUser.getPassword(), realmName,
